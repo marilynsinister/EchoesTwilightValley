@@ -60,6 +60,9 @@ namespace EchoesTwilightValley
         private int LastSlowMinute = int.MaxValue;
         private int LastAuraMinute = int.MaxValue;
 
+        /// <summary>Гроза была активной в предыдущем тике Update (для детекта «молнии только что ударили»).</summary>
+        private bool WasLightning;
+
         /// <summary>Персистентные данные мода (живут в save-файле игрока через Helper.Data).</summary>
         private ModSaveData SaveData = new();
 
@@ -76,6 +79,7 @@ namespace EchoesTwilightValley
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.GameLoop.TimeChanged += this.OnTimeChanged;
             helper.Events.GameLoop.Saving += this.OnSaving;
+            helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
             helper.Events.Player.Warped += this.OnWarped;
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
             helper.Events.Player.ItemConsumed += this.OnItemConsumed;
@@ -161,11 +165,44 @@ namespace EchoesTwilightValley
             Game1.addHUDMessage(new HUDMessage(this.Helper.Translation.Get("location.welcome"), HUDMessage.newQuest_type));
         }
 
+        /// <summary>
+        /// Настоящая гроза для Тимура (Фаза 4): в Stardew нет отдельного типа погоды «Thunder» —
+        /// молнии (<see cref="Game1.isLightning"/>) случаются внутри дождливых дней и длятся несколько
+        /// секунд. Этот тикер ловит момент, когда гроза только что ударила, пока игрок стоит в деревне,
+        /// и поёт тихий набат: сообщение + ритмичный удар барабана. Не чаще одного раза за день
+        /// (флаг ThunderHeard живёт в save-данных).
+        /// </summary>
+        private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
+        {
+            if (!Context.IsWorldReady || !e.IsMultipleOf(30)) // проверка ~раз в полсекунды
+                return;
+
+            bool lightning = Game1.isLightning;
+            bool justStarted = lightning && !this.WasLightning;
+            this.WasLightning = lightning;
+
+            if (!justStarted)
+                return;
+            if (Game1.currentLocation?.NameOrId != VillageId)
+                return;
+            if (this.SaveData.ThunderHeard)
+                return;
+
+            this.SaveData.ThunderHeard = true;
+            Game1.playSound("thunder1");
+            Game1.addHUDMessage(new HUDMessage(
+                this.Helper.Translation.Get("weather.thunder.timur"), HUDMessage.newQuest_type));
+            this.Monitor.Log("Гроза над деревней: Тимур слышит ритм небес.", LogLevel.Trace);
+        }
+
         /// <summary>Мягкое напоминание накануне сумеречной погоды (только в лог, не в лицо игроку).</summary>
         private void OnDayStarted(object? sender, DayStartedEventArgs e)
         {
             if (this.Config.AnnounceTwilightValley && IsTwilightWeather(Game1.weatherForTomorrow))
                 this.Monitor.Log("Завтра Сумрак снизойдёт на деревню…", LogLevel.Info);
+
+            // Гроза — не чаще одного «набата» за игровой день (сбрасываем флаг при старте дня).
+            this.SaveData.ThunderHeard = false;
         }
 
         /// <summary>«Замедление Сумрака»: не чаще одного сообщения в N минут реального времени.</summary>
@@ -441,6 +478,9 @@ namespace EchoesTwilightValley
 
         /// <summary>Отдал ли игрок иголку Тимуру в обмен на «Слёзы памяти» (квест «Последний аккорд», часть 2). Один раз за сохранение.</summary>
         public bool NeedleTraded { get; set; }
+
+        /// <summary>Звучал ли «набат грозы» в деревне в текущий игровой день (сбрасывается в OnDayStarted).</summary>
+        public bool ThunderHeard { get; set; }
     }
 
     /// <summary>Минимальный интерфейс API Generic Mod Config Menu (чтобы не зависеть от сборки GMCM).</summary>

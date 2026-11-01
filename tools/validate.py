@@ -336,6 +336,52 @@ def check_custom_fields(used_fields):
         print(f"  CustomFields совпадают с ожиданиями ModEntry.cs: {sorted(used_fields)}")
 
 
+def check_thunder(content):
+    """Гроза Тимура (Фаза 4): синхронизация C#-молний с CP-контентом.
+
+    Проверяет, что:
+      * в ModEntry.cs есть обработчик UpdateTicked, использующий Game1.isLightning;
+      * в content.json событие деревни имеет заголовок с погодным ключом 't' (thunder);
+      * у Тимура в Data/NPCDialogue задан диалог-ключ "Thunder";
+      * i18n-ключ weather.thunder.timur существует в ru и en.
+    Ловит рассинхрон, при котором «грозовая» механика молчит в игре.
+    """
+    cs_path = os.path.join(ROOT, "EchoesTwilightValley", "ModEntry.cs")
+    cs = open(cs_path, encoding="utf-8").read()
+    if "Game1.isLightning" not in cs or "UpdateTicked" not in cs:
+        err("groza: в ModEntry.cs не найден детект молний (Game1.isLightning / UpdateTicked)")
+
+    thunder_events = []
+    timur_dialogues = []
+    for ch in content["Changes"]:
+        target = str(ch.get("Target", ""))
+        if target.startswith("Data/Events/Custom_marilynsinister_AbandonedVillage"):
+            for event_id in (ch.get("Entries") or {}):
+                head = event_id.split("/")[0].split()
+                if "t" in head:
+                    thunder_events.append(event_id)
+        if target == "Data/NPCDialogue":
+            timur = (ch.get("Entries") or {}).get("Timur")
+            if isinstance(timur, dict):
+                dialogue = timur.get("Dialogue") or {}
+                if "Thunder" in dialogue:
+                    timur_dialogues.append("Thunder")
+
+    if not thunder_events:
+        err("groza: ни одно событие деревни не имеет погодного ключа 't' (thunder) в заголовке")
+    if not timur_dialogues:
+        err("groza: у Timur в Data/NPCDialogue нет диалога с ключом 'Thunder'")
+
+    for lang in ("ru", "en"):
+        path = os.path.join(ROOT, "i18n", f"{lang}.json")
+        data = json.load(open(path, encoding="utf-8"))
+        if "weather.thunder.timur" not in data:
+            err(f"groza: i18n/{lang}.json не содержит ключ weather.thunder.timur")
+
+    if thunder_events and timur_dialogues:
+        print(f"  Гроза Тимура: событий с ключом 't': {len(thunder_events)}, диалог Thunder — есть, i18n-ключ на месте")
+
+
 def main():
     print("🔍 Валидация EchoesTwilightValley…")
     check_manifest()
@@ -350,6 +396,7 @@ def main():
     check_event_flags(full_content)
     check_quest_item_flags(full_content)
     check_event_conditions(full_content)
+    check_thunder(full_content)
 
     for w in warnings:
         print(f"  ⚠️  {w}")

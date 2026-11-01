@@ -340,7 +340,8 @@
             "Rain": "Дождь — мой ритм. Капает ровно, как метроном. Только не сбивай меня с толку разговорами.",
             "Night": "В три часа ночи палочки сами ложатся. Это либо дар, либо проклятие. Скорее второе.",
             "Default": "Я барабаню там, где другие плачут. Так честнее.",
-            "marilynsinister.TimurMeet": "А, Игорь говорил про тебя. Тот, кто нашёл радио? Значит, свои."
+            "marilynsinister.TimurMeet": "А, Игорь говорил про тебя. Тот, кто нашёл радио? Значит, свои.",
+            "Thunder": "Гроза — это я разговариваю с небом. Палочками. Оно почти всегда отвечает."
           },
           "GiftTastes": {
             "Love": "(O)430 marilynsinister.VinylRecord",
@@ -519,6 +520,26 @@
       "When": {
         "Weather": "Rain"
       }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Events/Custom_marilynsinister_AbandonedVillage",
+      "When": {
+        "Flag": "marilynsinister.EchoesTwilightValley TimurMet"
+      },
+      "Entries": {
+        "twelve twenty t/-5000 t Timur": {
+          "SetVariables": [],
+          "Commands": [
+            "spawn Timur 25 20 Down",
+            "playSound thunder1",
+            "emote Timur 8",
+            "dialogue Timur \"Слышишь? Это не гром. Это барабаны.\\nТот, кто бил по ним в последний вечер, ещё не закончил песню.\""
+          ]
+        }
+      },
+      "Priority": 0,
+      "Comments": "Грозовое событие Тимура (CP-условие Flag + погодный ключ t в заголовке): C#-дубль OnUpdateTicked даёт HUD-набат при первой молнии в деревне."
     },
     {
       "Action": "EditData",

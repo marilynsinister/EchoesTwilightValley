@@ -69,5 +69,6 @@
   "item.tears_of_memory.desc": "A drop of frozen fog from the village well. Igor takes them instead of money — memory is the true currency here.",
   "item.record_needle": "Record Needle",
   "item.record_needle.desc": "A copper needle that still remembers the forge's warmth. Marnie gave it up for a fish caught in the fog.",
-  "quest.last_chord.part2.done": "Timur took the needle without a word, placed two cold drops in your palm and walked back into the rain. \"The Last Chord\": part 2 complete."
+  "quest.last_chord.part2.done": "Timur took the needle without a word, placed two cold drops in your palm and walked back into the rain. \"The Last Chord\": part 2 complete.",
+  "weather.thunder.timur": "The sky strikes the village like a detuned drum. Somewhere in the rain, Timur beats an answer."
 }
