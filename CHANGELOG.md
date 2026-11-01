@@ -2,6 +2,20 @@
 
 Формат: [Keep a Changelog](https://keepachangelog.com/ru/1.0.0/), версионирование: [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [1.3.0] — 2026-11-01
+
+### Добавлено
+- **Квест «Последний аккорд», часть 2**: два события у Мэрни (`Data/Events/Shop`) — зачин после `LastChordDone` (Мэрни отдаёт иголку за рыбу, пойманную в туман: `Conditions: (O)76 1` = Ling) и выдача квестового предмета `marilynsinister.RecordNeedle` с флагом `NeedleObtained`.
+- **«Слёзы памяти» как настоящая валюта долины**: новый предмет `marilynsinister.TearsOfMemory` (Quest, non-giftable); в магазине Игоря саженец плакучей ивы теперь покупается за 2 слезы; Кола Джоджа сохранена на переходный период.
+- **Обмен иголки в деревне (два пути)**: C#-компаньон при входе в деревню меняет иголку на слёзы (флаг `NeedleTraded` в save-данных, один раз за сохранение); CP-страховка — событие Тимура в дождь с магазином `marilynsinister.VillageExchange` (`Data/Shops/CatalogueEchoes`).
+- Спрайты `TearsOfMemory.png` и `RecordNeedle.png` (16×16) в `tools/build_sprites.py`; `Portraits/Timur` (плейсхолдер из арта Игоря).
+- Валидатор: сверка квестовых ID ModEntry.cs ↔ content.json, проверка `setFlag`-флагов событий против `When/HasFlag`, проверка предметов в `Conditions` событий, новые PNG в SPRITE_CHECKS.
+- i18n (ru+en): `item.tears_of_memory(.desc)`, `item.record_needle(.desc)`, `quest.last_chord.part2.done` — итого 71 ключ, покрытие 100%.
+
+### Изменено
+- Переименование «хутор → деревня» везде: локация «Заброшенная деревня», карта `AbandonedVillage.tmx`, ID `Custom_marilynsinister_AbandonedVillage`, ключ `location.abandoned_village`, EN «Abandoned Village».
+- content.json: 26 изменений (было 20).
+
 ## [1.2.0] — 2026-11-01
 
 ### Добавлено

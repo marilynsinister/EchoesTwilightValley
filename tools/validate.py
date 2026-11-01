@@ -31,6 +31,8 @@ SPRITE_CHECKS = {
     "assets/Objects/VinylRecord.png": (48, 96),
     "assets/Objects/WeepingWillow.png": (64, 64),
     "assets/Objects/Turntable.png": (48, 64),
+    "assets/Objects/TearsOfMemory.png": (16, 16),
+    "assets/Objects/RecordNeedle.png": (16, 16),
     "assets/Objects/BlackRoseCrop.png": (64, 128),
     "assets/Characters/Igor.png": (32, 64),
     "assets/Portraits/Igor.png": (64, 64),
@@ -177,6 +179,12 @@ def check_cs_sync():
     tea_id = m.group(1) if m else None
     if tea_id and f'"{tea_id}"' not in content_raw:
         err(f"ModEntry.cs: TeaOfSilenceId '{tea_id}' не найден в content.json")
+    # 2b. Квестовые ID (иголка / слёзы памяти) — тоже сверяются с content.json
+    for const in ("RecordNeedleId", "TearsOfMemoryId", "BlackRoseSeedsId"):
+        m = re.search(rf'{const}\s*=\s*"([^"]+)"', cs)
+        cid = m.group(1) if m else None
+        if cid and f'"(O){cid}"' not in content_raw and f'"{cid}"' not in content_raw:
+            err(f"ModEntry.cs: {const} '{cid}' не найден в content.json")
     m = re.search(r'AddBuff\("([^"]+)"', cs)
     buff_id = m.group(1) if m else None
     if buff_id and f'"{buff_id}"' not in content_raw:
@@ -220,6 +228,18 @@ def check_event_flags(content):
         hf = when.get("HasFlag")
         if isinstance(hf, str) and hf.strip():
             declared.add(hf.strip())
+    # собираем флаги, которые выставляются командами setFlag в самих событиях
+    set_flags = set()
+    for ch in content["Changes"]:
+        if not str(ch.get("Target", "")).startswith("Data/Events"):
+            continue
+        for ev in (ch.get("Entries") or {}).values():
+            for cmd in ev.get("Commands", []):
+                if cmd.startswith("setFlag "):
+                    parts = cmd.split()
+                    if len(parts) >= 3:
+                        set_flags.add(f"{parts[1]} {parts[2]}")
+    declared |= set_flags
     bad_refs = []
     for ch in content["Changes"]:
         target = ch.get("Target", "")
@@ -257,6 +277,34 @@ def check_quest_item_flags(content):
                     warn(f"предмет-квест '{oid}' помечен как giftable — лучше Giftable=false")
     if n:
         print(f"  Quest-предметы проверены: {n} шт., все non-giftable")
+
+
+def check_event_conditions(content):
+    """Conditions событий должны ссылаться на существующие предметы (О)id."""
+    known_objects = set()
+    for ch in content["Changes"]:
+        if ch.get("Target") == "Data/Objects":
+            known_objects.update(ch.get("Entries", {}).keys())
+    vanilla_ok = True  # числовые id считаем ванильными — их нет у нас, но есть в игре
+    problems = []
+    for ch in content["Changes"]:
+        target = ch.get("Target", "")
+        if not target.startswith("Data/Events"):
+            continue
+        for event_id, ev in (ch.get("Entries") or {}).items():
+            cond = (ev.get("Conditions") or "").strip()
+            if not cond:
+                continue
+            for token in cond.split(","):
+                item = token.strip().split()[0] if token.strip() else ""
+                if item.startswith("(O)"):
+                    oid = item[3:]
+                    if oid not in known_objects and not oid.isdigit():
+                        problems.append((target, event_id, item))
+    for target, event_id, item in problems:
+        err(f"{target}: событие '{event_id}' требует предмет '{item}', которого нет в Data/Objects")
+    if not problems:
+        print("  Conditions событий ссылаются только на известные предметы — OK")
 
 
 def check_map():
@@ -301,6 +349,7 @@ def main():
     full_content = json.load(open(os.path.join(ROOT, "content.json"), encoding="utf-8"))
     check_event_flags(full_content)
     check_quest_item_flags(full_content)
+    check_event_conditions(full_content)
 
     for w in warnings:
         print(f"  ⚠️  {w}")

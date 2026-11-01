@@ -94,4 +94,21 @@ d.rectangle([34, 30, 42, 34], fill=GREY, outline=INK)                 # усил
 d.point((38, 32), fill=(200, 180, 90, 255))                           # лампочка
 save(img, "Turntable.png")
 
+# ---------- Слёзы памяти (16x16, валюта долины) ----------
+img, d = canvas(16, 16)
+TEAR = (128, 150, 175, 255)
+for cx, cy, r in [(5, 9, 3), (11, 10, 2)]:                       # две капли
+    d.polygon([(cx, cy - r - 2), (cx - r, cy), (cx + r, cy)], fill=TEAR, outline=INK)
+    d.ellipse([cx - r, cy - 1, cx + r, cy + r], fill=TEAR, outline=INK)
+    d.point((cx - 1, cy - 1), fill=(220, 230, 240, 255))         # блик
+save(img, "TearsOfMemory.png")
+
+# ---------- Иголка для проигрывателя (16x16, квестовый предмет) ----------
+img, d = canvas(16, 16)
+COPPER = (170, 105, 60, 255)
+d.line([3, 13, 12, 4], fill=COPPER, width=2)                     # древко иглы
+d.line([12, 4, 14, 2], fill=PALE)                                # остриё
+d.ellipse([2, 12, 5, 15], outline=INK)                           # ушко
+save(img, "RecordNeedle.png")
+
 print("\nВсе спрайты обновлены.")

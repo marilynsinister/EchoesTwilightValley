@@ -45,6 +45,9 @@ namespace EchoesTwilightValley
         /// <summary>ID квестового предмета «Иголка для проигрывателя» (часть 2 квеста «Последний аккорд»).</summary>
         private const string RecordNeedleId = "marilynsinister.RecordNeedle";
 
+        /// <summary>ID валюты долины «Слёза памяти» (совпадает с Data/Objects в content.json).</summary>
+        private const string TearsOfMemoryId = "marilynsinister.TearsOfMemory";
+
         /// <summary>ID баффа «Душевное равновесие» (совпадает с Data/Buffs в content.json).</summary>
         private const string MelancholyBuffId = "marilynsinister.Melancholy";
 
@@ -346,7 +349,7 @@ namespace EchoesTwilightValley
                 return; // иголки нет — обмена не будет
 
             this.SaveData.NeedleTraded = true;
-            player.Items[slot] = ItemRegistry.Create("(O)marilynsinister.TearsOfMemory");
+            player.Items[slot] = ItemRegistry.Create($"(O){TearsOfMemoryId}");
             Game1.playSound("changeSerpent");
             Game1.addHUDMessage(new HUDMessage(
                 this.Helper.Translation.Get("quest.last_chord.part2.done"), HUDMessage.newQuest_type));
@@ -435,6 +438,9 @@ namespace EchoesTwilightValley
 
         /// <summary>Выполнена ли тихая цель «Посадить розу в туман» (один раз за сохранение).</summary>
         public bool FogRosePlanted { get; set; }
+
+        /// <summary>Отдал ли игрок иголку Тимуру в обмен на «Слёзы памяти» (квест «Последний аккорд», часть 2). Один раз за сохранение.</summary>
+        public bool NeedleTraded { get; set; }
     }
 
     /// <summary>Минимальный интерфейс API Generic Mod Config Menu (чтобы не зависеть от сборки GMCM).</summary>

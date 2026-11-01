@@ -64,5 +64,10 @@
   "book.wanderer_notes.p4": "An echo is not a sound.\nIt is the place where the sound hasn't come back yet.\nWait. It will return.",
   "achievement.fog-rose": "A rose planted in the fog. It will grow slowly — like everything real.",
   "npc.timur.name": "Timur",
-  "npc.timur.background": "The former drummer of that band. Since the last chord broke, people say he speaks only in rhythm."
+  "npc.timur.background": "The former drummer of that band. Since the last chord broke, people say he speaks only in rhythm.",
+  "item.tears_of_memory": "Tear of Memory",
+  "item.tears_of_memory.desc": "A drop of frozen fog from the village well. Igor takes them instead of money — memory is the true currency here.",
+  "item.record_needle": "Record Needle",
+  "item.record_needle.desc": "A copper needle that still remembers the forge's warmth. Marnie gave it up for a fish caught in the fog.",
+  "quest.last_chord.part2.done": "Timur took the needle without a word, placed two cold drops in your palm and walked back into the rain. \"The Last Chord\": part 2 complete."
 }

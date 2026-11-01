@@ -75,6 +75,18 @@
           "Texture": "assets/Objects/Turntable",
           "Giftable": false
         },
+        "marilynsinister.TearsOfMemory": {
+          "Name": "Слёза памяти",
+          "DisplayName": "i18n<item.tears_of_memory>",
+          "Description": "i18n<item.tears_of_memory.desc>",
+          "Type": "Quest",
+          "Price": 0,
+          "Texture": "assets/Objects/TearsOfMemory",
+          "Giftable": false,
+          "ContextTags": [
+            "echoes_twilight_currency"
+          ]
+        },
         "marilynsinister.WandererNotes": {
           "Name": "Заметки Странника",
           "DisplayName": "i18n<book.wanderer_notes.name>",
@@ -276,6 +288,14 @@
               "TradeItemId": "(O)marilynsinister.VinylRecord",
               "TradeItemCount": 1,
               "AvailableStock": 1
+            },
+            {
+              "Id": "Sapling",
+              "ItemId": "(O)marilynsinister.WeepingWillowSapling",
+              "Price": 0,
+              "TradeItemId": "(O)marilynsinister.TearsOfMemory",
+              "TradeItemCount": 2,
+              "AvailableStock": -1
             }
           ]
         }
@@ -483,6 +503,86 @@
     },
     {
       "Action": "EditData",
+      "Target": "Data/Events/Custom_marilynsinister_AbandonedVillage",
+      "Entries": {
+        "five ten r f marilynsinister.EchoesTwilightValley NeedleObtained/-1000 t Timur": {
+          "SetVariables": [],
+          "Commands": [
+            "spawn Timur 25 20 Down",
+            "playSound thunder",
+            "emote Timur 8",
+            "dialogue Timur \"Иголка. Ты принёс иглу.\\n...Держи. Это слёзы деревни — они пахнут туманом и аккордом.\"",
+            "setFlag marilynsinister.EchoesTwilightValley NeedleTraded"
+          ]
+        }
+      },
+      "When": {
+        "Weather": "Rain"
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Events/Custom_marilynsinister_AbandonedVillage",
+      "When": {
+        "HasFlag": "marilynsinister.EchoesTwilightValley NeedleObtained"
+      },
+      "Entries": {
+        "eight twenty r/-1000 t Timur": {
+          "SetVariables": [],
+          "Commands": [
+            "spawn Timur 25 20 Down",
+            "dialogue Timur \"Игла помнит тепло. Слёзы помнят холод. Меняй — здесь всё честнее, чем в городе.\"",
+            "openShop marilynsinister.VillageExchange Timur"
+          ]
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Events/Shop",
+      "Entries": {
+        "six ten f marilynsinister.EchoesTwilightValley LastChordDone/-3000 t Marney": {
+          "SetVariables": [],
+          "Commands": [
+            "spawn Marney 9 13 Right",
+            "emote Marney 16",
+            "dialogue Marney \"Э-э… ты из той деревни? Игорь передавал: у меня в ящике завалялась медная иголка для его проигрывателя. Забери, только не говори Джоджу, что она была у нас.^#$b И ещё: в туман над рекой ловится рыба, которой нет в каталоге. Вот она мне и нужна.\"",
+            "setFlag marilynsinister.EchoesTwilightValley NeedleQuestAccepted"
+          ]
+        },
+        "ten twenty f marilynsinister.EchoesTwilightValley NeedleQuestAccepted/-500 t Marney": {
+          "SetVariables": [],
+          "Conditions": "(O)76 1",
+          "Commands": [
+            "spawn Marney 9 13 Right",
+            "removeItem (O)76 1",
+            "gift marilynsinister.RecordNeedle false",
+            "dialogue Marney \"Держи иголку. Острая, как её имя. Только не порезись — эти иглы помнят каждую царапину.\"",
+            "setFlag marilynsinister.EchoesTwilightValley NeedleObtained"
+          ]
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Objects",
+      "Entries": {
+        "marilynsinister.RecordNeedle": {
+          "Name": "Иголка для проигрывателя",
+          "DisplayName": "i18n<item.record_needle>",
+          "Description": "i18n<item.record_needle.desc>",
+          "Type": "Quest",
+          "Price": 0,
+          "Texture": "assets/Objects/RecordNeedle",
+          "Giftable": false
+        }
+      },
+      "When": {
+        "HasFlag": "marilynsinister.EchoesTwilightValley LastChordDone"
+      }
+    },
+    {
+      "Action": "EditData",
       "Target": "Data/Books",
       "Entries": {
         "marilynsinister.WandererNotes": {
@@ -526,6 +626,12 @@
       "Action": "Load",
       "Target": "Characters/Timur",
       "FromFile": "assets/Characters/Igor.png"
+    },
+    {
+      "Action": "Load",
+      "Target": "Portraits/Timur",
+      "FromFile": "assets/Portraits/Igor.png",
+      "Comments": "Временный плейсхолдер: портрет Тимура повторяет арт Игоря до авторских артов (Фаза 5)."
     },
     {
       "Action": "EditMap",
@@ -580,6 +686,26 @@
           "SpriteIndex": 3
         }
       ]
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Shops/CatalogueEchoes",
+      "Entries": {
+        "marilynsinister.VillageExchange": {
+          "Image": null,
+          "Currency": null,
+          "Items": [
+            {
+              "Id": "NeedleForTears",
+              "ItemId": "(O)marilynsinister.TearsOfMemory",
+              "Price": 0,
+              "TradeItemId": "(O)marilynsinister.RecordNeedle",
+              "TradeItemCount": 1,
+              "AvailableStock": 3
+            }
+          ]
+        }
+      }
     }
   ]
 }
