@@ -48,11 +48,12 @@ Content Patcher-часть мода работает «из коробки», н
    ```
    ModBuildConfig сам найдёт пути к игре и SMAPI (если нет — укажите `PathToGame`/`PathToSMAPI` в `EchoesTwilightValley.csproj`). Готовый `EchoesTwilightValley.dll` попадёт в выходную папку bin и будет подхвачен manifest'ом (`EntryDll`).
 4. Опционально: установите **Generic Mod Config Menu** — в игре появится экран настроек (замедление Сумрака, шёпот ивы, интервал сообщений). Без GMCM правьте `config.json` в папке мода вручную.
-5. Быстрая проверка структуры без игры: `python3 tools/validate.py` (валидность JSON, покрытие i18n ru/en, размеры спрайтов, TMX-слои, совпадение CustomFields с кодом).
+5. Быстрая проверка структуры без игры: `python3 tools/validate.py` (валидность JSON, покрытие i18n ru/en, размеры спрайтов, TMX-слои, совпадение CustomFields с кодом, аудио-ассеты).
+6. Регенерация ассетов: `python3 tools/build_map.py` (карта), `python3 tools/build_sprites.py` (спрайты), `python3 tools/build_audio.py` (звуковые лупы, Фаза 3 — например бесшовный `vinyl_crackle.wav`).
 
 ## 🎼 Установка музыки (когда треки будут готовы)
 
-«Мрачная волна» пока не вшита: положите ogg-файлы в `assets/Audio/` и подключите их через мод **Custom Music** (`Data/CustomMusic`) либо замените заглушку `PlayVinylCrackle()` в `ModEntry.cs` на `StbSoundAudioPlayer`, читающий ваши файлы. Треклист — в разделе «Основные элементы».
+«Мрачная волна» как полноценный трек ещё не вшита: положите ogg-файлы в `EchoesTwilightValley/assets/Audio/` и подключите их через мод **Custom Music** (`Data/CustomMusic`) — либо через `PlayModAudioFile()` в `ModEntry.cs`, который уже умеет играть любые файлы из этой папки (на примере бесшовного треска `vinyl_crackle.wav`; генерация — `tools/build_audio.py`). Треклист — в разделе «Основные элементы».
 
 ## Примечание
 

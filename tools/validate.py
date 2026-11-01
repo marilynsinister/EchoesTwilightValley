@@ -382,6 +382,43 @@ def check_thunder(content):
         print(f"  Гроза Тимура: событий с ключом 't': {len(thunder_events)}, диалог Thunder — есть, i18n-ключ на месте")
 
 
+def check_audio(content):
+    """Фаза 3 (частично): аудио-ассеты и их подключение в C#.
+
+    Проверяет, что:
+      * в EchoesTwilightValley/assets/Audio/ есть хотя бы один звуковой файл (.wav/.ogg);
+      * ModEntry.cs умеет их проигрывать (PlayModAudioFile + вызов из PlayVinylCrackle);
+      * csproj копирует assets/Audio в выходную директорию (иначе файлы не доедут до игры).
+    """
+    audio_dir = os.path.join(ROOT, "EchoesTwilightValley", "assets", "Audio")
+    files = []
+    if os.path.isdir(audio_dir):
+        files = [f for f in os.listdir(audio_dir) if f.lower().endswith((".wav", ".ogg"))]
+    if not files:
+        err("аудио: в EchoesTwilightValley/assets/Audio/ нет ни одного файла .wav/.ogg")
+        return
+
+    cs = open(os.path.join(ROOT, "EchoesTwilightValley", "ModEntry.cs"), encoding="utf-8").read()
+    if "PlayModAudioFile" not in cs:
+        err("аудио: в ModEntry.cs не найден проигрыватель файлов мода (PlayModAudioFile)")
+    if "PlayVinylCrackle()" not in cs or "vinyl_crackle" not in cs:
+        err("аудио: PlayVinylCrackle не подключён к файлу vinyl_crackle")
+
+    csproj = open(os.path.join(ROOT, "EchoesTwilightValley", "EchoesTwilightValley.csproj"), encoding="utf-8").read()
+    if "assets\\Audio" not in csproj and "assets/Audio" not in csproj:
+        err("аудио: csproj не копирует assets/Audio в выходную директорию (PreserveNewest)")
+
+    # WAV-файлы: проверяем заголовок RIFF/WAVE, чтобы бинарь не был битым
+    for f in files:
+        if f.lower().endswith(".wav"):
+            with open(os.path.join(audio_dir, f), "rb") as fh:
+                head = fh.read(12)
+            if head[:4] != b"RIFF" or head[8:12] != b"WAVE":
+                err(f"аудио: {f} имеет битый WAV-заголовок")
+
+    print(f"  Аудио: {len(files)} файл(ов) в assets/Audio, проигрыватель и копирование в csproj — на месте")
+
+
 def main():
     print("🔍 Валидация EchoesTwilightValley…")
     check_manifest()
@@ -397,6 +434,7 @@ def main():
     check_quest_item_flags(full_content)
     check_event_conditions(full_content)
     check_thunder(full_content)
+    check_audio(full_content)
 
     for w in warnings:
         print(f"  ⚠️  {w}")

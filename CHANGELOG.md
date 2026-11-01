@@ -2,6 +2,17 @@
 
 Формат: [Keep a Changelog](https://keepachangelog.com/ru/1.0.0/), версионирование: [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [1.5.0] — 2026-11-02
+
+### Добавлено
+- **Фаза 3 — реальный audio-playback (v1)**: `PlayVinylCrackle()` в ModEntry.cs больше не ограничивается встроенным звуком-заглушкой — новый метод `PlayModAudioFile(name)` ищет `assets/Audio/{name}.{ogg,wav}` рядом с DLL мода и запускает воспроизведение; при отсутствии файла или ошибке резолва — корректный fallback на `smallSelect`, мод работоспособен в любой сборке. Треск винила теперь слышен и у Плакучей ивы, и при запуске проигрывателя.
+- **Звуковой ассет**: `EchoesTwilightValley/assets/Audio/vinyl_crackle.wav` — бесшовный луп 2 с (mono, 44.1 кГц, 16-bit): щелчки с decay, сетевой гул 50/100 Гц, шипение, кроссфейд концов. Генерируется новым скриптом `tools/build_audio.py` (детерминированный seed).
+- **csproj**: `Content Include="assets\Audio\**"` с `CopyToOutputDirectory="PreserveNewest"` — аудиокопия попадает в билд рядом с DLL; `<Version>` синхронизирован с manifest.json (1.5.0).
+- Валидатор: `check_audio` — наличие звуковых файлов, подключение `PlayModAudioFile`/`vinyl_crackle` в C#, правило копирования в csproj и проверка RIFF/WAVE-заголовков каждого .wav.
+
+### Исправлено
+- ROADMAP: удалена опечатка (случайные CJK-иероглифы в строке о целях v1).
+
 ## [1.4.0] — 2026-11-01
 
 ### Добавлено

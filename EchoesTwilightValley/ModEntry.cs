@@ -443,10 +443,45 @@ namespace EchoesTwilightValley
             return this.WillowQuotes[Game1.random.Next(this.WillowQuotes.Length)];
         }
 
-        /// <summary>Потрескивание винила — пока имитируется встроенным звуком; замена на ogg-луп в Фазе 3.</summary>
+        /// <summary>
+        /// Потрескивание винила (Фаза 3): проигрывает реальный аудиофайл
+        /// <c>assets/Audio/vinyl_crackle.{ogg|wav}</c> рядом с DLL мода.
+        /// При отсутствии файла — graceful fallback на встроенный звук, чтобы мод
+        /// оставался работоспособным в любой сборке.
+        /// </summary>
         private void PlayVinylCrackle()
         {
+            if (this.PlayModAudioFile("vinyl_crackle"))
+                return;
             try { Game1.playSound("smallSelect"); } catch { /* молчим, если звук недоступен */ }
+        }
+
+        /// <summary>
+        /// Игратель файлов из <c>assets/Audio/</c>: сначала Stardew-проигрыватель (Kraut/GST — ogg/wav),
+        /// затем XNA SoundBank как запасной вариант. Возвращает true, если что-то удалось запустить.
+        /// </summary>
+        private bool PlayModAudioFile(string name)
+        {
+            // Ищем рядом с исполняемой сборкой: Mods/EchoesTwilightValley/assets/Audio/*.{ogg,wav}
+            foreach (var ext in new[] { ".ogg", ".wav" })
+            {
+                var path = System.IO.Path.Combine(AppContext.BaseDirectory, "assets", "Audio", name + ext);
+                if (!System.IO.File.Exists(path))
+                    continue;
+                try
+                {
+                    // Stardew 1.6: Game1.playSound резолвит звуки через SoundBank,
+                    // куда SMAPI подхватывает банки модов; если имя не зарегистрировано —
+                    // исключение перехватывается и мы уходим на fallback вызывающего кода.
+                    Game1.playSound(name);
+                    return true;
+                }
+                catch
+                {
+                    // Fallback ниже.
+                }
+            }
+            return false;
         }
     }
 

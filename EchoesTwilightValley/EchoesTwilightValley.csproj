@@ -2,12 +2,18 @@
 
   <PropertyGroup>
     <AssemblyName>EchoesTwilightValley</AssemblyName>
-    <Version>1.2.1</Version>
+    <Version>1.5.0</Version>
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
+
+  <!-- Фаза 3: звуковые ассеты мода (треск винила и будущие треки) должны
+       доехать до выходной папки рядом с DLL — иначе PlayModAudioFile их не найдёт. -->
+  <ItemGroup>
+    <Content Include="assets\Audio\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.2" />
