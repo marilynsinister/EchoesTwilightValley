@@ -72,7 +72,21 @@
           "Description": "i18n<item.turntable_item.desc>",
           "Type": "Quest",
           "Price": 0,
-          "Texture": "assets/Objects/Turntable"
+          "Texture": "assets/Objects/Turntable",
+          "Giftable": false
+        },
+        "marilynsinister.WandererNotes": {
+          "Name": "Заметки Странника",
+          "DisplayName": "i18n<book.wanderer_notes.name>",
+          "Description": "i18n<book.wanderer_notes.desc>",
+          "Type": "Other",
+          "Category": -27,
+          "Price": 0,
+          "Texture": "LooseSprites\\font",
+          "SpriteIndex": 421,
+          "CustomFields": {
+            "book": "marilynsinister.WandererNotes"
+          }
         }
       }
     },
@@ -254,6 +268,14 @@
               "ItemId": "(O)marilynsinister.TeaOfSilence",
               "Price": 800,
               "AvailableStock": 2
+            },
+            {
+              "Id": "Book",
+              "ItemId": "(O)marilynsinister.WandererNotes",
+              "Price": 0,
+              "TradeItemId": "(O)marilynsinister.VinylRecord",
+              "TradeItemCount": 1,
+              "AvailableStock": 1
             }
           ]
         }
@@ -281,9 +303,29 @@
             "Default": "Всё проходит. И это тоже пройдёт. Но эхо остаётся."
           },
           "GiftTastes": {
-            "Love": "marilynsinister.BlackRose marilynsinister.TeaOfSilence",
+            "Love": "marilynsinister.BlackRose marilynsinister.TeaOfSilence marilynsinister.WandererNotes",
             "Neutral": "338 217",
             "Hate": "434"
+          }
+        },
+        "Timur": {
+          "Name": "i18n<npc.timur.name>",
+          "Gender": "Male",
+          "Age": "Adult",
+          "Marriageable": false,
+          "SocialAnxiety": "Neutral",
+          "Background": "i18n<npc.timur.background>",
+          "Dialogue": {
+            "Introduction": "Ты слышал «Эхо»? Мы играли её последнюю... вернее, первую. До тумана.",
+            "Rain": "Дождь — мой ритм. Капает ровно, как метроном. Только не сбивай меня с толку разговорами.",
+            "Night": "В три часа ночи палочки сами ложатся. Это либо дар, либо проклятие. Скорее второе.",
+            "Default": "Я барабаню там, где другие плачут. Так честнее.",
+            "marilynsinister.TimurMeet": "А, Игорь говорил про тебя. Тот, кто нашёл радио? Значит, свои."
+          },
+          "GiftTastes": {
+            "Love": "(O)430 marilynsinister.VinylRecord",
+            "Neutral": "(O)marilynsinister.BlackRose",
+            "Hate": "(O)114"
           }
         }
       }
@@ -362,7 +404,8 @@
       ],
       "When": {
         "Weather": "Rain, Fog"
-      }
+      },
+      "MapProperties": {}
     },
     {
       "Action": "EditMap",
@@ -415,17 +458,128 @@
             "openShop marilynsinister.IgorShop Igor"
           ]
         },
-        "nine twenty f marilynsinister.LastChordDone/-3000": {
+        "nine twenty f marilynsinister.EchoesTwilightValley LastChordDone/-3000": {
           "SetVariables": [],
           "Commands": [
             "spawn Igor 21 20 Down",
+            "gift marilynsinister.WandererNotes false",
             "playMovie none marilynsinister_EchoVinyl",
             "dialogue Igor \"Слышишь? Это «Эхо». Последний аккорд той группы, что играла здесь до тумана.\"",
             "gift marilynsinister.TurntableBlueprint false",
             "changeHeart 2 Igor"
           ]
+        },
+        "seven twenty f marilynsinister.EchoesTwilightValley IgorMet/-3000": {
+          "SetVariables": [],
+          "Commands": [
+            "spawn Timur 25 20 Down",
+            "emote Timur 8",
+            "dialogue Timur \"Игорь говорил, что ты чинишь старые радио. Принёс пластинку? Хорошо. Слушай.\"",
+            "setFlag marilynsinister.EchoesTwilightValley TimurMet",
+            "playMusic echo"
+          ]
         }
       }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Books",
+      "Entries": {
+        "marilynsinister.WandererNotes": {
+          "Name": "i18n<book.wanderer_notes.name>",
+          "Author": "i18n<book.wanderer_notes.author>",
+          "UnloadedImagePath": "assets/Objects/VinylRecord",
+          "LeftPageRects": [
+            {
+              "X": 0,
+              "Y": 0,
+              "Width": 144,
+              "Height": 144
+            },
+            {
+              "X": 144,
+              "Y": 0,
+              "Width": 144,
+              "Height": 144
+            }
+          ],
+          "BookColor": "Gray",
+          "Pages": [
+            {
+              "Text": "i18n<book.wanderer_notes.p1>"
+            },
+            {
+              "Text": "i18n<book.wanderer_notes.p2>"
+            },
+            {
+              "Text": "i18n<book.wanderer_notes.p3>"
+            },
+            {
+              "Text": "i18n<book.wanderer_notes.p4>"
+            }
+          ]
+        }
+      },
+      "Priority": 0
+    },
+    {
+      "Action": "Load",
+      "Target": "Characters/Timur",
+      "FromFile": "assets/Characters/Igor.png"
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/marilynsinister_AbandonedFarm",
+      "When": {
+        "Season": "Fall"
+      },
+      "Priority": 1,
+      "Comments": "Осенняя вариация хутора: слой Doormat перекрашивается под опавшую листву. Заполнить авторскими тайлами (Фаза 5).",
+      "MapTiles": [
+        {
+          "Layer": "Paths",
+          "Position": {
+            "X": 9,
+            "Y": 31
+          },
+          "SpriteIndex": 156
+        },
+        {
+          "Layer": "Paths",
+          "Position": {
+            "X": 10,
+            "Y": 31
+          },
+          "SpriteIndex": 156
+        }
+      ]
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/marilynsinister_AbandonedFarm",
+      "When": {
+        "Season": "Winter"
+      },
+      "Priority": 1,
+      "Comments": "Зимняя вариация: иней на тропе (тайлы снежной тропы). Заполнить авторскими тайлами (Фаза 5).",
+      "MapTiles": [
+        {
+          "Layer": "Paths",
+          "Position": {
+            "X": 9,
+            "Y": 31
+          },
+          "SpriteIndex": 3
+        },
+        {
+          "Layer": "Paths",
+          "Position": {
+            "X": 10,
+            "Y": 31
+          },
+          "SpriteIndex": 3
+        }
+      ]
     }
   ]
 }

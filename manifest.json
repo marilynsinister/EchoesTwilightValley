@@ -1,14 +1,19 @@
 {
   "Name": "Эхо Сумрачной Долины",
   "Author": "marilynsinister",
-  "Version": "1.2.0",
+  "Version": "1.2.1",
   "Description": "Мрачная локация, Странник Игорь и механика душевного равновесия в стиле русского пост-панка.",
   "UniqueID": "marilynsinister.EchoesTwilightValley",
   "EntryDll": "EchoesTwilightValley.dll",
   "MinimumApiVersion": "4.3.2",
   "MinimumGameVersion": "1.6.15",
-  "UpdateKeys": [ "GitHub:marilynsinister/EchoesTwilightValley" ],
+  "UpdateKeys": [
+    "GitHub:marilynsinister/EchoesTwilightValley"
+  ],
   "Dependencies": [
-    { "UniqueID": "Pathoschild.ContentPatcher", "MinimumVersion": "2.3.0" }
+    {
+      "UniqueID": "Pathoschild.ContentPatcher",
+      "MinimumVersion": "2.3.0"
+    }
   ]
 }

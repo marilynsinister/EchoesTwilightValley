@@ -39,10 +39,20 @@ namespace EchoesTwilightValley
         /// <summary>ID предмета «Чай тишины» (совпадает с Data/Objects в content.json).</summary>
         private const string TeaOfSilenceId = "marilynsinister.TeaOfSilence";
 
+        /// <summary>ID семян чёрной розы (цель «Посадить розу в туман»).</summary>
+        private const string BlackRoseSeedsId = "marilynsinister.BlackRoseSeeds";
+
+        /// <summary>ID баффа «Душевное равновесие» (совпадает с Data/Buffs в content.json).</summary>
+        private const string MelancholyBuffId = "marilynsinister.Melancholy";
+
+        /// <summary>Ключ CustomFields, по которому C# узнаёт пластинку-«ауру меланхолии».</summary>
+        private const string MelancholyAuraField = "EchoesTwilightValley.melancholyAura";
+
         private ModConfig Config = null!;
         private string[] WillowQuotes = Array.Empty<string>();
         private string? EasterQuote;
         private int LastSlowMinute = int.MaxValue;
+        private int LastAuraMinute = int.MaxValue;
 
         /// <summary>Персистентные данные мода (живут в save-файле игрока через Helper.Data).</summary>
         private ModSaveData SaveData = new();
@@ -63,6 +73,7 @@ namespace EchoesTwilightValley
             helper.Events.Player.Warped += this.OnWarped;
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
             helper.Events.Player.ItemConsumed += this.OnItemConsumed;
+            helper.Events.World.ObjectListChanged += this.OnObjectListChanged;
         }
 
         /*********
@@ -101,6 +112,7 @@ namespace EchoesTwilightValley
                 gmcm.AddPageSection(this.ModManifest, "main", this.Helper.Translation.Get("config.section.main"));
                 gmcm.AddBoolConfig(this.ModManifest, () => this.Config.EnableTimeSlowdown, () => this.Config.EnableTimeSlowdown = !this.Config.EnableTimeSlowdown, this.Helper.Translation.Get("config.timeslowdown.name"), () => this.Helper.Translation.Get("config.timeslowdown.desc"));
                 gmcm.AddBoolConfig(this.ModManifest, () => this.Config.EnableWillowWhispers, () => this.Config.EnableWillowWhispers = !this.Config.EnableWillowWhispers, this.Helper.Translation.Get("config.willow.name"), () => this.Helper.Translation.Get("config.willow.desc"));
+                gmcm.AddBoolConfig(this.ModManifest, () => this.Config.EnableMelancholyAura, () => this.Config.EnableMelancholyAura = !this.Config.EnableMelancholyAura, this.Helper.Translation.Get("config.aura.name"), () => this.Helper.Translation.Get("config.aura.desc"));
                 gmcm.AddNumberConfig(this.ModManifest, () => this.Config.SlowMessageIntervalMinutes, () => this.Config.SlowMessageIntervalMinutes++, this.Helper.Translation.Get("config.interval.name"), () => this.Helper.Translation.Get("config.interval.desc"), 30, 60, 5);
             }
         }
@@ -110,6 +122,7 @@ namespace EchoesTwilightValley
         {
             this.SaveData = this.Helper.Data.ReadSaveData<ModSaveData>("marilynsinister.echoes-save") ?? new ModSaveData();
             this.LastSlowMinute = int.MaxValue; // сброс порога частоты при загрузке мира
+            this.LastAuraMinute = int.MaxValue;
             this.Monitor.Log($"Данные мода загружены: чаёв под дождём выпито — {this.SaveData.RainyTeaCount}, проигрыватель заводился {this.SaveData.TurntablePlays} раз.", LogLevel.Trace);
         }
 
@@ -160,6 +173,41 @@ namespace EchoesTwilightValley
             this.LastSlowMinute = nowMinute;
 
             Game1.showGlobalMessage(this.Helper.Translation.Get("location.time-slowed"));
+
+            // «Аура меланхолии»: виниловая пластинка, размещённая на хуторе (любая локация),
+            // в сумеречную погоду даёт редкий тихий бафф — пассивная память о музыке.
+            this.TryMelancholyAura(location);
+        }
+
+        /// <summary>
+        /// Пассивная механика виниловой пластинки: если где-то в текущей локации стоит
+        /// big craftable с CustomField <c>EchoesTwilightValley.melancholyAura=true</c>,
+        /// в дождь/туман не чаще раза в час игрового времени выдаётся бафф «Душевное равновесие».
+        /// </summary>
+        private void TryMelancholyAura(GameLocation location)
+        {
+            if (!this.Config.EnableMelancholyAura)
+                return;
+            const int auraInterval = 60; // игровых минут между «вспышками эха»
+            if (Math.Abs(Game1.timeOfDay - this.LastAuraMinute) < auraInterval)
+                return;
+
+            foreach (var pair in location.objects.GetItems())
+            {
+                if (pair.Value is not StardewValley.Object obj || !obj.bigCraftable.Value)
+                    continue;
+                var info = obj.GetBigCraftableInformation();
+                if (info?.CustomFields is null)
+                    continue;
+                if (!info.CustomFields.TryGetValue(MelancholyAuraField, out string? flag) || flag != "true")
+                    continue;
+
+                this.LastAuraMinute = Game1.timeOfDay;
+                Game1.player.buffs.Add(MelancholyBuffId);
+                Game1.playSound("smallSelect");
+                this.Monitor.Log("Пластинка на хуторе тихо напоминает о себе: «Душевное равновесие».", LogLevel.Trace);
+                return;
+            }
         }
 
         /// <summary>Взаимодействия с ивой и проигрывателем (по кнопке из конфига, по умолчанию ПКМ).</summary>
@@ -244,6 +292,32 @@ namespace EchoesTwilightValley
             }
         }
 
+        /// <summary>
+        /// Тихая цель «Посадить розу в туман»: засчитывается один раз, когда игрок сажает
+        /// семена чёрной розы на хуторе в туманную погоду (событие World.ObjectListChanged).
+        /// </summary>
+        private void OnObjectListChanged(object? sender, ObjectListChangedEventArgs e)
+        {
+            if (!Context.IsWorldReady || !e.IsLocalPlayer)
+                return;
+            if (this.SaveData.FogRosePlanted || e.Location?.NameOrId != FarmId)
+                return;
+            if (!IsTwilightWeather(e.Location.GetWeather()))
+                return;
+
+            foreach (var change in e.Added)
+            {
+                if (change.Value is StardewValley.Object obj && obj.QualifiedItemId == $"(O){BlackRoseSeedsId}")
+                {
+                    this.SaveData.FogRosePlanted = true;
+                    Game1.addHUDMessage(new HUDMessage(
+                        this.Helper.Translation.Get("achievement.fog-rose"), HUDMessage.newQuest_type));
+                    Game1.playSound("smallSelect");
+                    return;
+                }
+            }
+        }
+
         /*********
         * Private methods
         *********/
@@ -307,6 +381,7 @@ namespace EchoesTwilightValley
         public bool EnableTimeSlowdown { get; set; } = true;
         public bool EnableWillowWhispers { get; set; } = true;
         public bool AnnounceTwilightValley { get; set; } = true;
+        public bool EnableMelancholyAura { get; set; } = true;
         public string InteractButton { get; set; } = "RightClick";
         public int SlowMessageIntervalMinutes { get; set; } = 120;
     }
@@ -322,6 +397,9 @@ namespace EchoesTwilightValley
 
         /// <summary>Сколько раз заводился настольный проигрыватель (цель «Завести проигрыватель»).</summary>
         public int TurntablePlays { get; set; }
+
+        /// <summary>Выполнена ли тихая цель «Посадить розу в туман» (один раз за сохранение).</summary>
+        public bool FogRosePlanted { get; set; }
     }
 
     /// <summary>Минимальный интерфейс API Generic Mod Config Menu (чтобы не зависеть от сборки GMCM).</summary>

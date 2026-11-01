@@ -37,7 +37,9 @@ SPRITE_CHECKS = {
 }
 EXPECTED_CUSTOM_FIELDS = {"EchoesTwilightValley.musicTrigger",
                           "EchoesTwilightValley.quoteSource",
-                          "EchoesTwilightValley.melancholyAura"}
+                          "EchoesTwilightValley.melancholyAura",
+                          # ванильный ключ связи предмета с книгой (Data/Books), не требует C#
+                          "book"}
 
 errors, warnings = [], []
 
@@ -206,6 +208,57 @@ def check_duplicate_quotes():
             seen[v] = k
 
 
+def check_event_flags(content):
+    """Событийные флаги/референсы: HasFlag в When и quest-условия событий должны совпадать.
+
+    Ловит рассинхрон вида `marilynsinister.LastChordDone` vs
+    `marilynsinister.EchoesTwilightValley LastChordDone` (событие никогда не запустится).
+    """
+    declared = set()
+    for ch in content["Changes"]:
+        when = ch.get("When") or {}
+        hf = when.get("HasFlag")
+        if isinstance(hf, str) and hf.strip():
+            declared.add(hf.strip())
+    bad_refs = []
+    for ch in content["Changes"]:
+        target = ch.get("Target", "")
+        if not target.startswith("Data/Events"):
+            continue
+        for event_id in ch.get("Entries", {}):
+            parts = event_id.split("/")
+            if len(parts) < 2:
+                continue
+            cond = parts[1]
+            # формат условия: <флаг>/<отрицание>; флаг может содержать пробел (ID флага + имя).
+            # Если «флаг» — числовое отрицание (-3000), это не HasFlag-ссылка, пропускаем.
+            flag = cond.split("/")[0].strip()
+            if flag.startswith("-"):
+                continue
+            if flag and flag not in declared:
+                bad_refs.append((target, event_id, flag))
+    for target, event_id, flag in bad_refs:
+        err(f"{target}: событие '{event_id}' ссылается на undeclared флаг '{flag}' "
+            f"(нет такого HasFlag ни в одном When)")
+    if not bad_refs and declared:
+        print(f"  Флаги событий согласованы с When/HasFlag: {sorted(declared)}")
+
+
+def check_quest_item_flags(content):
+    """Предметы Type=Quest не должны быть giftable (иначе их можно «подарить» и потерять схему)."""
+    n = 0
+    for ch in content["Changes"]:
+        if ch.get("Target") != "Data/Objects":
+            continue
+        for oid, obj in (ch.get("Entries") or {}).items():
+            if isinstance(obj, dict) and obj.get("Type") == "Quest":
+                n += 1
+                if obj.get("Giftable", True):
+                    warn(f"предмет-квест '{oid}' помечен как giftable — лучше Giftable=false")
+    if n:
+        print(f"  Quest-предметы проверены: {n} шт., все non-giftable")
+
+
 def check_map():
     path = os.path.join(ROOT, "assets", "Maps", "AbandonedFarm.tmx")
     tree = ET.parse(path)
@@ -245,6 +298,9 @@ def main():
     check_custom_fields(used_fields)
     check_cs_sync()
     check_duplicate_quotes()
+    full_content = json.load(open(os.path.join(ROOT, "content.json"), encoding="utf-8"))
+    check_event_flags(full_content)
+    check_quest_item_flags(full_content)
 
     for w in warnings:
         print(f"  ⚠️  {w}")
