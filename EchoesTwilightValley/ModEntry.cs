@@ -19,8 +19,10 @@ namespace EchoesTwilightValley
     ///     (в т.ч. редкая пасхальная цитата 1-го числа месяца).
     ///  3. Настольный проигрыватель включает «Мрачную волну» в дождливые дни
     ///     и даёт бафф «Душевное равновесие».
+    ///  4. Чай тишины под дождём засчитывает цель «Выпить чаю под дождём»
+    ///     (счётчики хранятся в save-данных через Helper.Data — см. ModSaveData).
     /// Все идентификаторы берутся из content.json через CustomFields,
-    /// поэтому мод корректно работает с кастомными (string-ID) боуфт-крафтабельными объектами 1.6.
+    /// поэтому мод корректно работает с кастомными (string-ID) big-craftable объектами 1.6.
     /// </summary>
     public class ModEntry : Mod
     {
@@ -34,10 +36,16 @@ namespace EchoesTwilightValley
         private const string MusicTriggerField = "EchoesTwilightValley.musicTrigger";
         private const string QuoteSourceField = "EchoesTwilightValley.quoteSource";
 
+        /// <summary>ID предмета «Чай тишины» (совпадает с Data/Objects в content.json).</summary>
+        private const string TeaOfSilenceId = "marilynsinister.TeaOfSilence";
+
         private ModConfig Config = null!;
         private string[] WillowQuotes = Array.Empty<string>();
         private string? EasterQuote;
         private int LastSlowMinute = int.MaxValue;
+
+        /// <summary>Персистентные данные мода (живут в save-файле игрока через Helper.Data).</summary>
+        private ModSaveData SaveData = new();
 
         /*********
         * Public methods
@@ -48,9 +56,13 @@ namespace EchoesTwilightValley
             this.Config = helper.ReadConfig<ModConfig>();
 
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+            helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.GameLoop.TimeChanged += this.OnTimeChanged;
+            helper.Events.GameLoop.Saving += this.OnSaving;
+            helper.Events.Player.Warped += this.OnWarped;
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+            helper.Events.Player.ItemConsumed += this.OnItemConsumed;
         }
 
         /*********
@@ -91,6 +103,36 @@ namespace EchoesTwilightValley
                 gmcm.AddBoolConfig(this.ModManifest, () => this.Config.EnableWillowWhispers, () => this.Config.EnableWillowWhispers = !this.Config.EnableWillowWhispers, this.Helper.Translation.Get("config.willow.name"), () => this.Helper.Translation.Get("config.willow.desc"));
                 gmcm.AddNumberConfig(this.ModManifest, () => this.Config.SlowMessageIntervalMinutes, () => this.Config.SlowMessageIntervalMinutes++, this.Helper.Translation.Get("config.interval.name"), () => this.Helper.Translation.Get("config.interval.desc"), 30, 60, 5);
             }
+        }
+
+        /// <summary>Загружает персистентные данные мода из save-файла (Helper.Data — переживает перезапуски и смену дня).</summary>
+        private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+        {
+            this.SaveData = this.Helper.Data.ReadSaveData<ModSaveData>("marilynsinister.echoes-save") ?? new ModSaveData();
+            this.LastSlowMinute = int.MaxValue; // сброс порога частоты при загрузке мира
+            this.Monitor.Log($"Данные мода загружены: чаёв под дождём выпито — {this.SaveData.RainyTeaCount}, проигрыватель заводился {this.SaveData.TurntablePlays} раз.", LogLevel.Trace);
+        }
+
+        /// <summary>Сохраняет счётчики механик в save-файл перед записью игры.</summary>
+        private void OnSaving(object? sender, SavingEventArgs e)
+        {
+            this.Helper.Data.WriteSaveData("marilynsinister.echoes-save", this.SaveData);
+        }
+
+        /// <summary>Первое посещение хутора — тихое приветствие Сумрачной Долины (один раз за игру).</summary>
+        private void OnWarped(object? sender, WarpedEventArgs e)
+        {
+            if (!e.IsLocalPlayer || !this.Config.AnnounceTwilightValley)
+                return;
+            if (e.NewLocation.NameOrId != FarmId)
+                return;
+
+            string key = "twilight-valley.first-visit";
+            if (this.Helper.Data.ReadWorldData<bool>(key))
+                return;
+            this.Helper.Data.WriteWorldData(key, true);
+
+            Game1.addHUDMessage(new HUDMessage(this.Helper.Translation.Get("location.welcome"), HUDMessage.newQuest_type));
         }
 
         /// <summary>Мягкое напоминание накануне сумеречной погоды (только в лог, не в лицо игроку).</summary>
@@ -166,12 +208,39 @@ namespace EchoesTwilightValley
                         this.Helper.Translation.Get("music.gloomy-wave-start"), HUDMessage.newQuest_type));
                     Game1.buffsAdder.AddBuff("marilynsinister.Melancholy", player,
                         new BuffSettings(duration: TimeSpan.FromMinutes(30)));
+
+                    // Цель «Завести проигрыватель» — счётчик живёт в save-данных.
+                    this.SaveData.TurntablePlays++;
+                    if (this.SaveData.TurntablePlays == 1)
+                        Game1.addHUDMessage(new HUDMessage(
+                            this.Helper.Translation.Get("achievement.turntable.first"), HUDMessage.newQuest_type));
                 }
                 else
                 {
                     Game1.addHUDMessage(new HUDMessage(
                         this.Helper.Translation.Get("music.wait-for-rain"), HUDMessage.none_type));
                 }
+            }
+        }
+
+        /// <summary>
+        /// Отслеживает употребление «Чая тишины» в дождливый день: цель «Выпить чаю под дождём»
+        /// засчитывается на 1-м, 7-м и 30-м чашке (тихие ступени, без навязчивого спама).
+        /// </summary>
+        private void OnItemConsumed(object? sender, ItemConsumedEventArgs e)
+        {
+            if (!Context.IsWorldReady || e.Item?.QualifiedItemId != $"(O){TeaOfSilenceId}")
+                return;
+            if (!Game1.isRaining && !IsTwilightWeather(Game1.currentLocation?.GetWeather() ?? 0))
+                return;
+
+            this.SaveData.RainyTeaCount++;
+            int count = this.SaveData.RainyTeaCount;
+            if (count is 1 or 7 or 30)
+            {
+                Game1.addHUDMessage(new HUDMessage(
+                    this.Helper.Translation.Get("achievement.rainy-tea", new { Count = count }),
+                    HUDMessage.newQuest_type));
             }
         }
 
@@ -240,6 +309,19 @@ namespace EchoesTwilightValley
         public bool AnnounceTwilightValley { get; set; } = true;
         public string InteractButton { get; set; } = "RightClick";
         public int SlowMessageIntervalMinutes { get; set; } = 120;
+    }
+
+    /// <summary>
+    /// Персистентные данные мода, записываемые в save-файл через Helper.Data.WriteSaveData.
+    /// Переживают завершение дня, перезапуск игры и выгрузку мира (в отличие от полей ModEntry).
+    /// </summary>
+    public class ModSaveData
+    {
+        /// <summary>Сколько чашек «Чая тишины» выпито в дождливые/туманные дни (цель «Выпить чаю под дождём»).</summary>
+        public int RainyTeaCount { get; set; }
+
+        /// <summary>Сколько раз заводился настольный проигрыватель (цель «Завести проигрыватель»).</summary>
+        public int TurntablePlays { get; set; }
     }
 
     /// <summary>Минимальный интерфейс API Generic Mod Config Menu (чтобы не зависеть от сборки GMCM).</summary>

@@ -154,6 +154,58 @@ def check_sprites():
     print(f"  спрайты: {ok}/{len(SPRITE_CHECKS)} файлов в порядке")
 
 
+def check_cs_sync():
+    """Сверяет константы ModEntry.cs с content.json и i18n (защита от рассинхронизации CP<->C#)."""
+    cs_path = os.path.join(ROOT, "EchoesTwilightValley", "ModEntry.cs")
+    if not os.path.exists(cs_path):
+        warn("ModEntry.cs отсутствует — C#-компаньон не найден")
+        return
+    cs = open(cs_path, encoding="utf-8").read()
+    content_raw = open(os.path.join(ROOT, "content.json"), encoding="utf-8").read()
+    ru = json.load(open(os.path.join(ROOT, "i18n", "ru.json"), encoding="utf-8"))
+
+    # 1. ID локации
+    m = re.search(r'FarmId\s*=\s*"([^"]+)"', cs)
+    farm_id = m.group(1) if m else None
+    if farm_id and f'"{farm_id}"' not in content_raw:
+        err(f"ModEntry.cs: FarmId '{farm_id}' не найден в content.json")
+
+    # 2. ID чая и баффа
+    m = re.search(r'TeaOfSilenceId\s*=\s*"([^"]+)"', cs)
+    tea_id = m.group(1) if m else None
+    if tea_id and f'"{tea_id}"' not in content_raw:
+        err(f"ModEntry.cs: TeaOfSilenceId '{tea_id}' не найден в content.json")
+    m = re.search(r'AddBuff\("([^"]+)"', cs)
+    buff_id = m.group(1) if m else None
+    if buff_id and f'"{buff_id}"' not in content_raw:
+        err(f"ModEntry.cs: бафф '{buff_id}' не объявлен в Data/Buffs content.json")
+
+    # 3. Ключи CustomFields из C# должны присутствовать в content.json
+    for field in re.findall(r'"(EchoesTwilightValley\.[A-Za-z]+)"', cs):
+        if field not in content_raw:
+            err(f"ModEntry.cs ждёт CustomField '{field}', которого нет в content.json")
+
+    # 4. i18n-ключи, используемые в C# через Translation.Get("...")
+    used = set(re.findall(r'Translation\.Get\("([^"]+)"', cs))
+    missing = sorted(k for k in used if k not in ru)
+    if missing:
+        err(f"ru.json: отсутствуют ключи из ModEntry.cs: {missing}")
+    print(f"  C#/CP/i18n синхронизация: локация={farm_id}, чай={tea_id}, бафф={buff_id}, "
+          f"получено {len(used)} i18n-ключей из C# — OK")
+
+
+def check_duplicate_quotes():
+    """Цитаты ивы не должны повторяться (значения)."""
+    ru = json.load(open(os.path.join(ROOT, "i18n", "ru.json"), encoding="utf-8"))
+    vals = [(k, v) for k, v in ru.items() if k.startswith("quote.willow.")]
+    seen = {}
+    for k, v in vals:
+        if v in seen:
+            err(f"Дубликат цитаты ивы: '{k}' повторяет '{seen[v]}'")
+        else:
+            seen[v] = k
+
+
 def check_map():
     path = os.path.join(ROOT, "assets", "Maps", "AbandonedFarm.tmx")
     tree = ET.parse(path)
@@ -191,6 +243,8 @@ def main():
     check_sprites()
     check_map()
     check_custom_fields(used_fields)
+    check_cs_sync()
+    check_duplicate_quotes()
 
     for w in warnings:
         print(f"  ⚠️  {w}")

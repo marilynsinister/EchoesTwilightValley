@@ -29,7 +29,10 @@
           "Type": "Flower",
           "Category": -80,
           "Price": 40,
-          "ContextTags": ["color_black", "flower_item"],
+          "ContextTags": [
+            "color_black",
+            "flower_item"
+          ],
           "Texture": "assets/Objects/BlackRose"
         },
         "marilynsinister.BlackRoseSeeds": {
@@ -50,7 +53,9 @@
           "Description": "i18n<item.vinyl_record.desc>",
           "Type": "Crafting",
           "Price": 0,
-          "ContextTags": ["echoes_twilight_decoration"],
+          "ContextTags": [
+            "echoes_twilight_decoration"
+          ],
           "Texture": "assets/Objects/VinylRecord"
         },
         "marilynsinister.WeepingWillowSapling": {
@@ -71,7 +76,6 @@
         }
       }
     },
-
     {
       "Action": "EditData",
       "Target": "Data/BigCraftables",
@@ -81,7 +85,10 @@
           "Description": "i18n<item.vinyl_record.desc>",
           "Texture": "assets/Objects/VinylRecord",
           "SpriteIndex": 0,
-          "Size": { "X": 1, "Y": 1 },
+          "Size": {
+            "X": 1,
+            "Y": 1
+          },
           "CustomFields": {
             "EchoesTwilightValley.melancholyAura": "true"
           }
@@ -91,7 +98,10 @@
           "Description": "i18n<item.weeping_willow.desc>",
           "Texture": "assets/Objects/WeepingWillow",
           "SpriteIndex": 0,
-          "Size": { "X": 4, "Y": 4 },
+          "Size": {
+            "X": 4,
+            "Y": 4
+          },
           "Interactive": true,
           "CustomFields": {
             "EchoesTwilightValley.quoteSource": "willow"
@@ -102,7 +112,10 @@
           "Description": "i18n<item.turntable.desc>",
           "Texture": "assets/Objects/Turntable",
           "SpriteIndex": 0,
-          "Size": { "X": 3, "Y": 2 },
+          "Size": {
+            "X": 3,
+            "Y": 2
+          },
           "Interactive": true,
           "CustomFields": {
             "EchoesTwilightValley.musicTrigger": "gloomy_wave"
@@ -110,7 +123,6 @@
         }
       }
     },
-
     {
       "Action": "EditData",
       "Target": "Data/Buffs",
@@ -129,14 +141,21 @@
         }
       }
     },
-
     {
       "Action": "EditData",
       "Target": "Data/Crops",
       "Entries": {
         "marilynsinister.BlackRoseCrop": {
-          "Seasons": ["spring", "fall"],
-          "DaysInPhase": [6, 6, 6, 6],
+          "Seasons": [
+            "spring",
+            "fall"
+          ],
+          "DaysInPhase": [
+            6,
+            6,
+            6,
+            6
+          ],
           "HarvestItemId": "marilynsinister.BlackRose",
           "ExtraHarvestChance": 0.05,
           "ShowTop": true,
@@ -145,7 +164,6 @@
         }
       }
     },
-
     {
       "Action": "EditData",
       "Target": "Data/CraftingRecipes",
@@ -207,7 +225,6 @@
         "HasFlag": "marilynsinister.EchoesTwilightValley LastChordDone"
       }
     },
-
     {
       "Action": "EditData",
       "Target": "Data/Shops",
@@ -242,7 +259,6 @@
         }
       }
     },
-
     {
       "Action": "EditData",
       "Target": "Data/NPCDialogue",
@@ -272,7 +288,7 @@
         }
       }
     },
-        {
+    {
       "Action": "Load",
       "Target": "Portraits/Igor",
       "FromFile": "assets/Portraits/Igor.png"
@@ -282,7 +298,6 @@
       "Target": "Characters/Igor",
       "FromFile": "assets/Characters/Igor.png"
     },
-
     {
       "Action": "Load",
       "Target": "Maps/marilynsinister_AbandonedFarm",
@@ -297,18 +312,48 @@
           "CreateOnLoad": {
             "MapPath": "Maps/marilynsinister_AbandonedFarm"
           },
-          "DefaultArrivalTile": { "X": 10, "Y": 32 },
+          "DefaultArrivalTile": {
+            "X": 10,
+            "Y": 32
+          },
           "Fishable": false,
           "CanHaveBeehives": false
         }
       }
     },
     {
+      "Action": "EditData",
+      "Target": "Data/Spaces",
+      "Entries": {
+        "Custom_marilynsinister_AbandonedFarm": {
+          "Id": "Custom_marilynsinister_AbandonedFarm",
+          "Name": "Заброшенный хутор",
+          "IsOutdoors": true,
+          "PrimaryMap": "Maps/marilynsinister_AbandonedFarm",
+          "Seasons": null,
+          "CreateOnLoad": {
+            "MapPath": "Maps/marilynsinister_AbandonedFarm"
+          },
+          "DefaultArrivalTile": {
+            "X": 10,
+            "Y": 32
+          },
+          "Fishable": false,
+          "CanHaveBeehives": false,
+          "Comment": "Локация из мода «Эхо Сумрачной Долины». Погода наследует глобальную — дождь и туман приходят сюда первыми."
+        }
+      },
+      "Priority": 0
+    },
+    {
       "Action": "EditMap",
       "Target": "Maps/Forest",
       "MapTiles": [
         {
-          "Position": { "X": 60, "Y": 99 },
+          "Position": {
+            "X": 60,
+            "Y": 99
+          },
           "Layer": "Back",
           "SetProperties": {
             "Action": "warp Custom_marilynsinister_AbandonedFarm 10 32"
@@ -324,14 +369,20 @@
       "Target": "Maps/marilynsinister_AbandonedFarm",
       "MapTiles": [
         {
-          "Position": { "X": 10, "Y": 39 },
+          "Position": {
+            "X": 10,
+            "Y": 39
+          },
           "Layer": "Back",
           "SetProperties": {
             "Action": "warp Forest 60 100"
           }
         },
         {
-          "Position": { "X": 24, "Y": 19 },
+          "Position": {
+            "X": 24,
+            "Y": 19
+          },
           "Layer": "AlwaysObjects",
           "SetProperties": {
             "Object": "(O)marilynsinister.VinylRecord"
@@ -339,7 +390,6 @@
         }
       ]
     },
-
     {
       "Action": "EditData",
       "Target": "Data/Events/Custom_marilynsinister_AbandonedFarm",
