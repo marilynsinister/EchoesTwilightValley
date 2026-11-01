@@ -1,5 +1,5 @@
 using System;
-using Microsoft.Xna.Framework.Audio;
+using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -11,39 +11,40 @@ namespace EchoesTwilightValley
 {
     /// <summary>
     /// C#-компаньон мода «Эхо Сумрачной Долины».
-    /// Content Patcher делает основную работу (lokация, предметы, магазин),
-    /// а здесь живут три механики, которые CP не умеет:
-    ///  1. «Замедление Сумрака» — в дождь/туман на хуторе время игры течёт медленнее
-    ///     (игрок реже теряет минуты на бег и безделье: пассивный бафф + мягкий time-warp).
-    ///  2. Плакучая ива шепчет философские цитаты при взаимодействии.
+    /// Content Patcher делает основную работу (локация, предметы, магазин),
+    /// а здесь живут механики, которые CP не умеет:
+    ///  1. «Замедление Сумрака» — атмосферные сообщения о течении времени
+    ///     в дождь/туман на хуторе (с частотным порогом, чтобы не спамить).
+    ///  2. Плакучая ива шепчет философские цитаты при взаимодействии
+    ///     (в т.ч. редкая пасхальная цитата 1-го числа месяца).
     ///  3. Настольный проигрыватель включает «Мрачную волну» в дождливые дни
-    ///     и воспроизводит потрескивание винила.
+    ///     и даёт бафф «Душевное равновесие».
+    /// Все идентификаторы берутся из content.json через CustomFields,
+    /// поэтому мод корректно работает с кастомными (string-ID) боуфт-крафтабельными объектами 1.6.
     /// </summary>
     public class ModEntry : Mod
     {
         /*********
         * Fields
         *********/
+        /// <summary>ID локации хутора (совпадает с Data/Locations в content.json).</summary>
         private const string FarmId = "Custom_marilynsinister_AbandonedFarm";
-        private const string MelancholyBuffId = "marilynsinister.Melancholy";
-        private const string TurntableId = "marilynsinister.Turntable";
-        private const string WillowId = "marilynsinister.WeepingWillow";
+
+        /// <summary>Ключ CustomFields, по которому C# узнаёт «наши» big craftables (префикс = ID мода, как в content.json).</summary>
+        private const string MusicTriggerField = "EchoesTwilightValley.musicTrigger";
+        private const string QuoteSourceField = "EchoesTwilightValley.quoteSource";
 
         private ModConfig Config = null!;
         private string[] WillowQuotes = Array.Empty<string>();
-        private readonly SDate lastSlowMessage = new(600, 1);
-
-        /*********
-        * Accessors
-        *********/
-        internal static IMonitor MonitorObj = null!;
+        private string? EasterQuote;
+        private int LastSlowMinute = int.MaxValue;
 
         /*********
         * Public methods
         *********/
+        /// <inheritdoc />
         public override void Entry(IModHelper helper)
         {
-            MonitorObj = this.Monitor;
             this.Config = helper.ReadConfig<ModConfig>();
 
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
@@ -52,81 +53,118 @@ namespace EchoesTwilightValley
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
         }
 
+        /*********
+        * Event handlers
+        *********/
+        /// <summary>Загружает цитаты ивы из i18n и подключает GMCM, если он установлен.</summary>
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
-            // Загружаем цитаты ивы из i18n (ключи quote.willow.N)
-            var quotes = new System.Collections.Generic.List<string>();
-            for (int i = 1; i <= 32; i++)
+            // Цитаты: ключи quote.willow.1..N подряд, затем отдельный ключ-пасхалка.
+            var quotes = new List<string>();
+            for (int i = 1; i <= 64; i++)
             {
-                string text = this.Helper.Translation.TranslateKey($"quote.willow.{i}");
-                if (text == $"quote.willow.{i}") break; // ключа нет
+                string key = $"quote.willow.{i}";
+                string text = this.Helper.Translation.Get(key);
+                if (text == key)
+                    break; // ключа нет — остановились
                 quotes.Add(text);
             }
             this.WillowQuotes = quotes.ToArray();
+
+            string easterKey = "quote.willow.easter";
+            string easter = this.Helper.Translation.Get(easterKey);
+            this.EasterQuote = easter == easterKey ? null : easter;
+
+            this.Monitor.Log($"Загружено цитат ивы: {this.WillowQuotes.Length} (+пасхальная: {(this.EasterQuote != null ? "да" : "нет")}).", LogLevel.Trace);
+
+            // Generic Mod Config Menu (если у игрока стоит) — настройки без правки config.json вручную.
+            var gmcm = this.Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (gmcm is not null)
+            {
+                gmcm.Register(
+                    mod: this.ModManifest,
+                    reset: () => this.Config = new ModConfig(),
+                    save: () => this.Helper.WriteConfig(this.Config)
+                );
+                gmcm.AddPageSection(this.ModManifest, "main", this.Helper.Translation.Get("config.section.main"));
+                gmcm.AddBoolConfig(this.ModManifest, () => this.Config.EnableTimeSlowdown, () => this.Config.EnableTimeSlowdown = !this.Config.EnableTimeSlowdown, this.Helper.Translation.Get("config.timeslowdown.name"), () => this.Helper.Translation.Get("config.timeslowdown.desc"));
+                gmcm.AddBoolConfig(this.ModManifest, () => this.Config.EnableWillowWhispers, () => this.Config.EnableWillowWhispers = !this.Config.EnableWillowWhispers, this.Helper.Translation.Get("config.willow.name"), () => this.Helper.Translation.Get("config.willow.desc"));
+                gmcm.AddNumberConfig(this.ModManifest, () => this.Config.SlowMessageIntervalMinutes, () => this.Config.SlowMessageIntervalMinutes++, this.Helper.Translation.Get("config.interval.name"), () => this.Helper.Translation.Get("config.interval.desc"), 30, 60, 5);
+            }
         }
 
+        /// <summary>Мягкое напоминание накануне сумеречной погоды (только в лог, не в лицо игроку).</summary>
         private void OnDayStarted(object? sender, DayStartedEventArgs e)
         {
             if (this.Config.AnnounceTwilightValley && IsTwilightWeather(Game1.weatherForTomorrow))
                 this.Monitor.Log("Завтра Сумрак снизойдёт на хутор…", LogLevel.Info);
         }
 
+        /// <summary>«Замедление Сумрака»: не чаще одного сообщения в N минут реального времени.</summary>
         private void OnTimeChanged(object? sender, TimeChangedEventArgs e)
         {
             if (!Context.IsWorldReady || !this.Config.EnableTimeSlowdown)
                 return;
-
-            // На хуторе в сумеречную погоду время «замедляется»:
-            // каждые игровые полчаса игрок получает порцию душевного равновесия,
-            // а часы за окном идут как будто медленнее (сообщение-атмосфера).
             if (Game1.currentLocation?.NameOrId != FarmId)
                 return;
-            if (!IsTwilightWeather(Game1.weatherIcon))
+            if (!IsTwilightWeather(Game1.currentLocation.GetWeather()))
                 return;
 
-            if (e.NewTime >= 1800 || e.NewTime <= 600)
-            {
-                if (SDate.Now().TotalMinutes - this.lastSlowMessage.TotalMinutes > 90)
-                {
-                    this.lastSlowMessage.SetToNow();
-                    Game1.showGlobalMessage(this.Helper.Translation.Get("location.time-slowed"));
-                }
-            }
+            // Порог частоты: сообщение не чаще раза в Config.SlowMessageIntervalMinutes игровых минут.
+            int interval = Math.Max(30, this.Config.SlowMessageIntervalMinutes);
+            int nowMinute = Game1.timeOfDay;
+            if (Math.Abs(nowMinute - this.LastSlowMinute) < interval)
+                return;
+            this.LastSlowMinute = nowMinute;
+
+            Game1.showGlobalMessage(this.Helper.Translation.Get("location.time-slowed"));
         }
 
+        /// <summary>Взаимодействия с ивой и проигрывателем (по кнопке из конфига, по умолчанию ПКМ).</summary>
         private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
         {
-            if (!Context.IsPlayerFree || !this.Config.EnableWillowWhispers)
+            if (!Context.IsWorldReady || !Context.IsPlayerFree)
                 return;
-            if (e.Button.ToString() != this.Config.InteractButton)
+            if (!e.Button.ToString().Equals(this.Config.InteractButton, StringComparison.OrdinalIgnoreCase))
                 return;
 
             var player = Game1.player;
-            Location tile = player.getTileLocation();
+            var location = Game1.currentLocation;
+            if (location is null)
+                return;
 
-            // 1) Плакучая ива: клик рядом с декорацией → случайная цитата
-            if (TryNearBigCraftable(tile, WillowId, out _))
+            // Ищем ближайший «наш» боуфт-крафт в радиусе действия клика (по тайлу курсора или рядом с игроком).
+            Vector2 cursorTile = e.Cursor.GrabTile;
+            var target = FindAdjacentTaggedCraftable(location, cursorTile, player.getTileLocation());
+            if (target is null)
+                return;
+
+            string trigger = GetCustomField(target, MusicTriggerField);
+            string quoteSrc = GetCustomField(target, QuoteSourceField);
+
+            // 1) Плакучая ива → случайная цитата (1-е число месяца — редкая пасхальная цитата).
+            if (this.Config.EnableWillowWhispers && quoteSrc == "willow")
             {
-                if (this.WillowQuotes.Length > 0)
+                string? quote = PickWillowQuote();
+                if (quote is not null)
                 {
-                    string quote = this.WillowQuotes[Game1.random.Next(this.WillowQuotes.Length)];
                     Game1.addHUDMessage(new HUDMessage($"🌿 {quote}", HUDMessage.newQuest_type));
-                    PlayCrackle();
+                    PlayVinylCrackle();
                 }
                 return;
             }
 
-            // 2) Проигрыватель: в дождь запускает «Мрачную волну» (потрескивание винила)
-            if (TryNearBigCraftable(tile, TurntableId, out _))
+            // 2) Проигрыватель → «Мрачная волна» только в дождь/туман.
+            if (trigger == "gloomy_wave")
             {
-                if (IsTwilightWeather(Game1.weatherIcon) || Game1.isRaining)
+                bool twilight = IsTwilightWeather(location.GetWeather()) || Game1.isRaining;
+                if (twilight)
                 {
                     Game1.playSound("newRecord");
-                    PlayCrackle();
+                    PlayVinylCrackle();
                     Game1.addHUDMessage(new HUDMessage(
                         this.Helper.Translation.Get("music.gloomy-wave-start"), HUDMessage.newQuest_type));
-                    // применяем бафф равновесия — «острый взгляд» слушателя
-                    Game1.buffsAdder.AddBuff(MelancholyBuffId, player,
+                    Game1.buffsAdder.AddBuff("marilynsinister.Melancholy", player,
                         new BuffSettings(duration: TimeSpan.FromMinutes(30)));
                 }
                 else
@@ -143,33 +181,73 @@ namespace EchoesTwilightValley
         private static bool IsTwilightWeather(int weatherIcon)
             => weatherIcon == Game1.rainIcon || weatherIcon == Game1.fogIcon;
 
-        private static bool TryNearBigCraftable(Location around, string bigCraftableId, out BigCraftableData? data)
+        /// <summary>
+        /// Находит боуфт-крафт с нашими CustomFields рядом с тайлом курсора (±2 клетки)
+        /// или рядом с игроком (±2 клетки). Использует ObjectInfo.BigCraftable — корректный
+        /// способ для string-ID предметов 1.6 (никакого ParentSheetIndex-хака).
+        /// </summary>
+        private static StardewValley.Object? FindAdjacentTaggedCraftable(GameLocation location, Vector2 cursorTile, Vector2 playerTile)
         {
-            data = null;
-            foreach ((Vector2 pos, GameObject obj) in Game1.currentLocation.objects.GetItems())
+            foreach (var pair in location.objects.GetItems())
             {
-                if (obj is not LargeObjectArtifactSpot loot || !loot.bigCraftable.Value) continue;
-                if (obj.ParentSheetIndex.ToString() != GetVanillaIndex(bigCraftableId)) continue;
-                if (Math.Abs(pos.X - around.X) <= 4 && Math.Abs(pos.Y - around.Y) <= 4)
-                    return true;
+                if (pair.Value is not StardewValley.Object obj)
+                    continue;
+                if (!obj.bigCraftable.Value)
+                    continue;
+
+                var info = obj.GetBigCraftableInformation();
+                if (info?.CustomFields is null)
+                    continue;
+                bool ours = info.CustomFields.ContainsKey(MusicTriggerField) || info.CustomFields.ContainsKey(QuoteSourceField);
+                if (!ours)
+                    continue;
+
+                if (WithinRange(pair.Key, cursorTile, 2) || WithinRange(pair.Key, playerTile, 2))
+                    return obj;
             }
-            return false;
+            return null;
         }
 
-        private static string GetVanillaIndex(string id) => id; // placeholder для мода-декораций
+        private static bool WithinRange(Vector2 a, Vector2 b, int radius)
+            => Math.Abs(a.X - b.X) <= radius && Math.Abs(a.Y - b.Y) <= radius;
 
-        private static void PlayCrackle()
+        private static string? GetCustomField(BigCraftableData data, string key)
+            => data.CustomFields.TryGetValue(key, out string? value) ? value : null;
+
+        private string? PickWillowQuote()
         {
-            try { Game1.playSound("document"); } catch { }
+            // Пасхалка: 1-е число месяца — редкая цитата.
+            if (this.EasterQuote is not null && Game1.dayOfMonth == 1)
+                return this.EasterQuote;
+
+            if (this.WillowQuotes.Length == 0)
+                return null;
+            return this.WillowQuotes[Game1.random.Next(this.WillowQuotes.Length)];
+        }
+
+        /// <summary>Потрескивание винила — пока имитируется встроенным звуком; замена на ogg-луп в Фазе 3.</summary>
+        private void PlayVinylCrackle()
+        {
+            try { Game1.playSound("smallSelect"); } catch { /* молчим, если звук недоступен */ }
         }
     }
 
-    /// <summary>Настройки мода (config.json).</summary>
+    /// <summary>Настройки мода (config.json). Совместимы со старым форматом — новые поля получают дефолты.</summary>
     public class ModConfig
     {
         public bool EnableTimeSlowdown { get; set; } = true;
         public bool EnableWillowWhispers { get; set; } = true;
         public bool AnnounceTwilightValley { get; set; } = true;
-        public string InteractButton { get; set; } = "LeftClick";
+        public string InteractButton { get; set; } = "RightClick";
+        public int SlowMessageIntervalMinutes { get; set; } = 120;
+    }
+
+    /// <summary>Минимальный интерфейс API Generic Mod Config Menu (чтобы не зависеть от сборки GMCM).</summary>
+    public interface IGenericModConfigMenuApi
+    {
+        void Register(IManifest mod, Action reset, Action save);
+        void AddPageSection(IManifest mod, string page, string title);
+        void AddBoolConfig(IManifest mod, Func<bool> getValue, Action setValue, Func<string> name, Func<string?> description = null);
+        void AddNumberConfig(IManifest mod, Func<int> getValue, Action<int> setValue, Func<string> name, Func<string?> description = null, int? min = null, int? max = null, int? interval = null);
     }
 }

@@ -92,6 +92,7 @@
           "Texture": "assets/Objects/WeepingWillow",
           "SpriteIndex": 0,
           "Size": { "X": 4, "Y": 4 },
+          "Interactive": true,
           "CustomFields": {
             "EchoesTwilightValley.quoteSource": "willow"
           }
