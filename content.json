@@ -342,17 +342,17 @@
     },
     {
       "Action": "Load",
-      "Target": "Maps/marilynsinister_AbandonedFarm",
-      "FromFile": "assets/Maps/AbandonedFarm.tmx"
+      "Target": "Maps/marilynsinister_AbandonedVillage",
+      "FromFile": "assets/Maps/AbandonedVillage.tmx"
     },
     {
       "Action": "EditData",
       "Target": "Data/Locations",
       "Entries": {
-        "Custom_marilynsinister_AbandonedFarm": {
-          "DisplayName": "i18n<location.abandoned_farm>",
+        "Custom_marilynsinister_AbandonedVillage": {
+          "DisplayName": "i18n<location.abandoned_village>",
           "CreateOnLoad": {
-            "MapPath": "Maps/marilynsinister_AbandonedFarm"
+            "MapPath": "Maps/marilynsinister_AbandonedVillage"
           },
           "DefaultArrivalTile": {
             "X": 10,
@@ -367,14 +367,14 @@
       "Action": "EditData",
       "Target": "Data/Spaces",
       "Entries": {
-        "Custom_marilynsinister_AbandonedFarm": {
-          "Id": "Custom_marilynsinister_AbandonedFarm",
-          "Name": "Заброшенный хутор",
+        "Custom_marilynsinister_AbandonedVillage": {
+          "Id": "Custom_marilynsinister_AbandonedVillage",
+          "Name": "Заброшенная деревня",
           "IsOutdoors": true,
-          "PrimaryMap": "Maps/marilynsinister_AbandonedFarm",
+          "PrimaryMap": "Maps/marilynsinister_AbandonedVillage",
           "Seasons": null,
           "CreateOnLoad": {
-            "MapPath": "Maps/marilynsinister_AbandonedFarm"
+            "MapPath": "Maps/marilynsinister_AbandonedVillage"
           },
           "DefaultArrivalTile": {
             "X": 10,
@@ -398,7 +398,7 @@
           },
           "Layer": "Back",
           "SetProperties": {
-            "Action": "warp Custom_marilynsinister_AbandonedFarm 10 32"
+            "Action": "warp Custom_marilynsinister_AbandonedVillage 10 32"
           }
         }
       ],
@@ -409,7 +409,7 @@
     },
     {
       "Action": "EditMap",
-      "Target": "Maps/marilynsinister_AbandonedFarm",
+      "Target": "Maps/marilynsinister_AbandonedVillage",
       "MapTiles": [
         {
           "Position": {
@@ -435,7 +435,7 @@
     },
     {
       "Action": "EditData",
-      "Target": "Data/Events/Custom_marilynsinister_AbandonedFarm",
+      "Target": "Data/Events/Custom_marilynsinister_AbandonedVillage",
       "Entries": {
         "six ten f marilynsinister.IgorAppear/-3000": {
           "SetVariables": [],
@@ -529,12 +529,12 @@
     },
     {
       "Action": "EditMap",
-      "Target": "Maps/marilynsinister_AbandonedFarm",
+      "Target": "Maps/marilynsinister_AbandonedVillage",
       "When": {
         "Season": "Fall"
       },
       "Priority": 1,
-      "Comments": "Осенняя вариация хутора: слой Doormat перекрашивается под опавшую листву. Заполнить авторскими тайлами (Фаза 5).",
+      "Comments": "Осенняя вариация деревни: слой Doormat перекрашивается под опавшую листву. Заполнить авторскими тайлами (Фаза 5).",
       "MapTiles": [
         {
           "Layer": "Paths",
@@ -556,7 +556,7 @@
     },
     {
       "Action": "EditMap",
-      "Target": "Maps/marilynsinister_AbandonedFarm",
+      "Target": "Maps/marilynsinister_AbandonedVillage",
       "When": {
         "Season": "Winter"
       },

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Генератор карты AbandonedFarm.tmx для мода «Эхо Сумрачной Долины».
+Генератор карты AbandonedVillage.tmx для мода «Эхо Сумрачной Долины».
 
 Карта 40x40 в формате Tiled (TMX), совместимом со Stardew Valley:
   * Ground         — трава, дорога, лужи, грядка чёрных роз
@@ -16,7 +16,7 @@
   * Objects        — интерактивные точки: колодец, скамейка, разбитое радио, ива
 
 Запуск:  python3 tools/build_map.py
-Выход:   assets/Maps/AbandonedFarm.tmx + assets/Maps/tiles.tsx + placeholder.png
+Выход:   assets/Maps/AbandonedVillage.tmx + assets/Maps/tiles.tsx + placeholder.png
 """
 import os
 import xml.etree.ElementTree as ET
@@ -106,7 +106,7 @@ for x in range(W):
     back[0][x] = back[H - 1][x] = 5
 for y in range(H):
     back[y][0] = back[y][W - 1] = 5
-back[H - 1][9] = back[H - 1][12] = 0  # дыра в заборе у дороги — вход на хутор
+back[H - 1][9] = back[H - 1][12] = 0  # дыра в заборе у дороги — вход в деревню
 
 front = blank(0)
 for y in range(10, 20):
@@ -219,7 +219,7 @@ def ser(node, indent):
 for node in root_xml.childNodes:
     if node.nodeType == node.ELEMENT_NODE:
         ser(node, 0)
-tmx_path = os.path.abspath(os.path.join(OUT_DIR, "AbandonedFarm.tmx"))
+tmx_path = os.path.abspath(os.path.join(OUT_DIR, "AbandonedVillage.tmx"))
 with open(tmx_path, "w", encoding="utf-8") as f:
     f.write('<?xml version="1.0" encoding="UTF-8"?>\n' + "\n".join(lines) + "\n")
 

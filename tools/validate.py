@@ -167,10 +167,10 @@ def check_cs_sync():
     ru = json.load(open(os.path.join(ROOT, "i18n", "ru.json"), encoding="utf-8"))
 
     # 1. ID локации
-    m = re.search(r'FarmId\s*=\s*"([^"]+)"', cs)
-    farm_id = m.group(1) if m else None
-    if farm_id and f'"{farm_id}"' not in content_raw:
-        err(f"ModEntry.cs: FarmId '{farm_id}' не найден в content.json")
+    m = re.search(r'VillageId\s*=\s*"([^"]+)"', cs)
+    village_id = m.group(1) if m else None
+    if village_id and f'"{village_id}"' not in content_raw:
+        err(f"ModEntry.cs: VillageId '{village_id}' не найден в content.json")
 
     # 2. ID чая и баффа
     m = re.search(r'TeaOfSilenceId\s*=\s*"([^"]+)"', cs)
@@ -192,7 +192,7 @@ def check_cs_sync():
     missing = sorted(k for k in used if k not in ru)
     if missing:
         err(f"ru.json: отсутствуют ключи из ModEntry.cs: {missing}")
-    print(f"  C#/CP/i18n синхронизация: локация={farm_id}, чай={tea_id}, бафф={buff_id}, "
+    print(f"  C#/CP/i18n синхронизация: локация={village_id}, чай={tea_id}, бафф={buff_id}, "
           f"получено {len(used)} i18n-ключей из C# — OK")
 
 
@@ -260,7 +260,7 @@ def check_quest_item_flags(content):
 
 
 def check_map():
-    path = os.path.join(ROOT, "assets", "Maps", "AbandonedFarm.tmx")
+    path = os.path.join(ROOT, "assets", "Maps", "AbandonedVillage.tmx")
     tree = ET.parse(path)
     root = tree.getroot()
     layers = {l.get("name") for l in root.findall("layer")}
@@ -274,7 +274,7 @@ def check_map():
     n_obj = sum(len(g.findall("object")) for g in obj_groups)
     if n_obj == 0:
         err("TMX: группа Objects пуста — не будет колодца/радио/ивы")
-    print(f"  AbandonedFarm.tmx: {len(layers | groups)} слоёв, объектов: {n_obj}")
+    print(f"  AbandonedVillage.tmx: {len(layers | groups)} слоёв, объектов: {n_obj}")
 
 
 def check_custom_fields(used_fields):

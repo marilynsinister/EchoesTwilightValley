@@ -14,7 +14,7 @@ namespace EchoesTwilightValley
     /// Content Patcher делает основную работу (локация, предметы, магазин),
     /// а здесь живут механики, которые CP не умеет:
     ///  1. «Замедление Сумрака» — атмосферные сообщения о течении времени
-    ///     в дождь/туман на хуторе (с частотным порогом, чтобы не спамить).
+    ///     в дождь/туман в деревне (с частотным порогом, чтобы не спамить).
     ///  2. Плакучая ива шепчет философские цитаты при взаимодействии
     ///     (в т.ч. редкая пасхальная цитата 1-го числа месяца).
     ///  3. Настольный проигрыватель включает «Мрачную волну» в дождливые дни
@@ -29,8 +29,8 @@ namespace EchoesTwilightValley
         /*********
         * Fields
         *********/
-        /// <summary>ID локации хутора (совпадает с Data/Locations в content.json).</summary>
-        private const string FarmId = "Custom_marilynsinister_AbandonedFarm";
+        /// <summary>ID локации деревни (совпадает с Data/Locations в content.json).</summary>
+        private const string VillageId = "Custom_marilynsinister_AbandonedVillage";
 
         /// <summary>Ключ CustomFields, по которому C# узнаёт «наши» big craftables (префикс = ID мода, как в content.json).</summary>
         private const string MusicTriggerField = "EchoesTwilightValley.musicTrigger";
@@ -41,6 +41,9 @@ namespace EchoesTwilightValley
 
         /// <summary>ID семян чёрной розы (цель «Посадить розу в туман»).</summary>
         private const string BlackRoseSeedsId = "marilynsinister.BlackRoseSeeds";
+
+        /// <summary>ID квестового предмета «Иголка для проигрывателя» (часть 2 квеста «Последний аккорд»).</summary>
+        private const string RecordNeedleId = "marilynsinister.RecordNeedle";
 
         /// <summary>ID баффа «Душевное равновесие» (совпадает с Data/Buffs в content.json).</summary>
         private const string MelancholyBuffId = "marilynsinister.Melancholy";
@@ -132,12 +135,19 @@ namespace EchoesTwilightValley
             this.Helper.Data.WriteSaveData("marilynsinister.echoes-save", this.SaveData);
         }
 
-        /// <summary>Первое посещение хутора — тихое приветствие Сумрачной Долины (один раз за игру).</summary>
+        /// <summary>Первое посещение деревни — тихое приветствие Сумрачной Долины (один раз за игру).</summary>
         private void OnWarped(object? sender, WarpedEventArgs e)
         {
-            if (!e.IsLocalPlayer || !this.Config.AnnounceTwilightValley)
+            if (!e.IsLocalPlayer || !Context.IsWorldReady)
                 return;
-            if (e.NewLocation.NameOrId != FarmId)
+            if (e.NewLocation.NameOrId != VillageId)
+                return;
+
+            // Часть 2 квеста «Последний аккорд»: Тимур меняет иголку на «Слёзы памяти»
+            // при каждом входе в деревню, пока обмен не засчитан.
+            this.TryTradeRecordNeedle();
+
+            if (!this.Config.AnnounceTwilightValley)
                 return;
 
             string key = "twilight-valley.first-visit";
@@ -152,7 +162,7 @@ namespace EchoesTwilightValley
         private void OnDayStarted(object? sender, DayStartedEventArgs e)
         {
             if (this.Config.AnnounceTwilightValley && IsTwilightWeather(Game1.weatherForTomorrow))
-                this.Monitor.Log("Завтра Сумрак снизойдёт на хутор…", LogLevel.Info);
+                this.Monitor.Log("Завтра Сумрак снизойдёт на деревню…", LogLevel.Info);
         }
 
         /// <summary>«Замедление Сумрака»: не чаще одного сообщения в N минут реального времени.</summary>
@@ -160,7 +170,7 @@ namespace EchoesTwilightValley
         {
             if (!Context.IsWorldReady || !this.Config.EnableTimeSlowdown)
                 return;
-            if (Game1.currentLocation?.NameOrId != FarmId)
+            if (Game1.currentLocation?.NameOrId != VillageId)
                 return;
             if (!IsTwilightWeather(Game1.currentLocation.GetWeather()))
                 return;
@@ -174,9 +184,9 @@ namespace EchoesTwilightValley
 
             Game1.showGlobalMessage(this.Helper.Translation.Get("location.time-slowed"));
 
-            // «Аура меланхолии»: виниловая пластинка, размещённая на хуторе (любая локация),
+            // «Аура меланхолии»: виниловая пластинка, размещённая в деревне (любая локация),
             // в сумеречную погоду даёт редкий тихий бафф — пассивная память о музыке.
-            this.TryMelancholyAura(location);
+            this.TryMelancholyAura(Game1.currentLocation);
         }
 
         /// <summary>
@@ -205,7 +215,7 @@ namespace EchoesTwilightValley
                 this.LastAuraMinute = Game1.timeOfDay;
                 Game1.player.buffs.Add(MelancholyBuffId);
                 Game1.playSound("smallSelect");
-                this.Monitor.Log("Пластинка на хуторе тихо напоминает о себе: «Душевное равновесие».", LogLevel.Trace);
+                this.Monitor.Log("Пластинка в деревне тихо напоминает о себе: «Душевное равновесие».", LogLevel.Trace);
                 return;
             }
         }
@@ -294,13 +304,13 @@ namespace EchoesTwilightValley
 
         /// <summary>
         /// Тихая цель «Посадить розу в туман»: засчитывается один раз, когда игрок сажает
-        /// семена чёрной розы на хуторе в туманную погоду (событие World.ObjectListChanged).
+        /// семена чёрной розы в деревне в туманную погоду (событие World.ObjectListChanged).
         /// </summary>
         private void OnObjectListChanged(object? sender, ObjectListChangedEventArgs e)
         {
             if (!Context.IsWorldReady || !e.IsLocalPlayer)
                 return;
-            if (this.SaveData.FogRosePlanted || e.Location?.NameOrId != FarmId)
+            if (this.SaveData.FogRosePlanted || e.Location?.NameOrId != VillageId)
                 return;
             if (!IsTwilightWeather(e.Location.GetWeather()))
                 return;
@@ -316,6 +326,31 @@ namespace EchoesTwilightValley
                     return;
                 }
             }
+        }
+
+        /// <summary>
+        /// Квест «Последний аккорд», часть 2: игрок добыл иголку для проигрывателя у Мэрни
+        /// (обмен на рыбу, пойманную в туман — см. Data/Events в content.json). Когда он
+        /// заходит в Заброшенную деревню с иголкой в инвентаре, Тимур забирает её и отдаёт
+        /// «Слёзы памяти» — настоящую валюту долины. Засчитывается один раз за сохранение
+        /// (флаг NeedleTraded живёт в save-данных).
+        /// </summary>
+        private void TryTradeRecordNeedle()
+        {
+            if (this.SaveData.NeedleTraded)
+                return;
+
+            var player = Game1.player;
+            int slot = player.Items.SearchForItem($"(O){RecordNeedleId}");
+            if (slot < 0)
+                return; // иголки нет — обмена не будет
+
+            this.SaveData.NeedleTraded = true;
+            player.Items[slot] = ItemRegistry.Create("(O)marilynsinister.TearsOfMemory");
+            Game1.playSound("changeSerpent");
+            Game1.addHUDMessage(new HUDMessage(
+                this.Helper.Translation.Get("quest.last_chord.part2.done"), HUDMessage.newQuest_type));
+            this.Monitor.Log("Тимур забрал иголку и оставил «Слёзы памяти».", LogLevel.Trace);
         }
 
         /*********
