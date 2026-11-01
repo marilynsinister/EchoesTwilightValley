@@ -1,0 +1,129 @@
+{
+  "Format": "2.27.0",
+  "Changes": [
+    {
+      "Action": "EditData",
+      "Target": "Data/Buffs",
+      "Entries": {
+        "Custom_Marilynsinister_Melancholy": {
+          "DisplayName": "Душевное равновесие",
+          "Description": "Светлая меланхолия наполняет тебя. Ты видишь мир острее и чувствуешь ритм природы.",
+          "IconTexture": "LooseSprites\\Cursors",
+          "IconSpriteIndex": 192,
+          "Effects": { "LuckLevel": 1, "FishingLevel": 1 },
+          "Duration": 1000
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Objects",
+      "Entries": {
+        "Custom_Marilynsinister_TeaOfSilence": {
+          "Name": "Чай тишины",
+          "DisplayName": "Чай тишины",
+          "Description": "Горячий напиток, заваренный на лепестках черной розы. Дарит душевное равновесие.",
+          "Type": "Consumable",
+          "Category": -2,
+          "Price": 0,
+          "EdibleIsDrink": true,
+          "EdibleBuffs": ["Custom_Marilynsinister_Melancholy"],
+          "Texture": "assets/Objects/TeaOfSilence",
+          "SpriteIndex": 0
+        },
+        "Custom_Marilynsinister_VinylRecord": {
+          "Name": "Виниловая пластинка \"Эхо\"",
+          "DisplayName": "Виниловая пластинка \"Эхо\"",
+          "Description": "Старая пластинка с потрескивающим звуком. Декорация, напоминающая о прошлом.",
+          "Type": "Crafting",
+          "Category": -19,
+          "Price": 0,
+          "Texture": "assets/Objects/VinylRecord",
+          "SpriteIndex": 0
+        },
+        "Custom_Marilynsinister_BlackRoseSeeds": {
+          "Name": "Семена Черной розы",
+          "DisplayName": "Семена Черной розы",
+          "Description": "Растет только ночью. Цветок впитывает лунный свет и тишину.",
+          "Type": "Seeds",
+          "Category": -74,
+          "Price": 0,
+          "Texture": "assets/Objects/BlackRoseSeeds",
+          "SpriteIndex": 0
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Shops",
+      "Entries": {
+        "Custom_Marilynsinister_IgorShop": {
+          "Currency": 0,
+          "Items": [
+            {
+              "Id": "Vinyl",
+              "ItemId": "(O)Custom_Marilynsinister_VinylRecord",
+              "Price": 0,
+              "TradeItemId": "(O)434",
+              "TradeItemCount": 3,
+              "AvailableStock": 1
+            },
+            {
+              "Id": "Seeds",
+              "ItemId": "(O)Custom_Marilynsinister_BlackRoseSeeds",
+              "Price": 0,
+              "TradeItemId": "(O)434",
+              "TradeItemCount": 1,
+              "AvailableStock": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/NPC/Dialogue/Igor",
+      "Entries": {
+        "Introduction": "Дождь смывает всё... кроме памяти. Ты тоже ищешь тишину, путник?",
+        "Rain": "Слушай... слышишь этот перебор струн в шуме капель? Это эхо того, что мы потеряли.",
+        "Night": "Ночь — лучшее время для честных разговоров. И для старых пластинок.",
+        "Shop": "У меня нет ничего полезного для твоей суеты. Только то, что осталось от прошлого. Выбирай.",
+        "Default": "Всё проходит. И это тоже пройдет. Но эхо остается."
+      }
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/Forest",
+      "When": { "Weather": "Rain, Fog", "Time": ">= 1800" },
+      "MapProperties": {
+        "Warps": "Add 60 100 Custom_Marilynsinister_AbandonedFarm 10 10"
+      },
+      "TextLayers": [
+        {
+          "Name": "Buildings",
+          "Position": { "X": 60, "Y": 99 },
+          "Text": "2"
+        }
+      ]
+    },
+    {
+      "Action": "Load",
+      "Target": "Maps/Custom_Marilynsinister_AbandonedFarm",
+      "FromFile": "assets/Maps/AbandonedFarm.tmx"
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Locations",
+      "Entries": {
+        "Custom_Marilynsinister_AbandonedFarm": {
+          "DisplayName": "Заброшенный хутор",
+          "DefaultArrivalTile": { "X": 10, "Y": 10 },
+          "CreateOnLoad": {
+            "MapPath": "Maps/Custom_Marilynsinister_AbandonedFarm",
+            "AlwaysActive": true
+          }
+        }
+      }
+    }
+  ]
+}
