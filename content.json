@@ -1,68 +1,223 @@
 {
-  "Format": "2.27.0",
+  "Format": "2.3.0",
   "Changes": [
-    {
-      "Action": "EditData",
-      "Target": "Data/Buffs",
-      "Entries": {
-        "Custom_Marilynsinister_Melancholy": {
-          "DisplayName": "Душевное равновесие",
-          "Description": "Светлая меланхолия наполняет тебя. Ты видишь мир острее и чувствуешь ритм природы.",
-          "IconTexture": "LooseSprites\\Cursors",
-          "IconSpriteIndex": 192,
-          "Effects": { "LuckLevel": 1, "FishingLevel": 1 },
-          "Duration": 1000
-        }
-      }
-    },
     {
       "Action": "EditData",
       "Target": "Data/Objects",
       "Entries": {
-        "Custom_Marilynsinister_TeaOfSilence": {
+        "marilynsinister.TeaOfSilence": {
           "Name": "Чай тишины",
-          "DisplayName": "Чай тишины",
-          "Description": "Горячий напиток, заваренный на лепестках черной розы. Дарит душевное равновесие.",
+          "DisplayName": "i18n<item.tea_of_silence>",
+          "Description": "i18n<item.tea_of_silence.desc>",
           "Type": "Consumable",
-          "Category": -2,
+          "Category": -14,
           "Price": 0,
           "EdibleIsDrink": true,
-          "EdibleBuffs": ["Custom_Marilynsinister_Melancholy"],
-          "Texture": "assets/Objects/TeaOfSilence",
-          "SpriteIndex": 0
+          "EdibleBuffs": [
+            {
+              "BuffId": "marilynsinister.Melancholy",
+              "Duration": 7500,
+              "Probability": 1
+            }
+          ],
+          "Texture": "assets/Objects/TeaOfSilence"
         },
-        "Custom_Marilynsinister_VinylRecord": {
-          "Name": "Виниловая пластинка \"Эхо\"",
-          "DisplayName": "Виниловая пластинка \"Эхо\"",
-          "Description": "Старая пластинка с потрескивающим звуком. Декорация, напоминающая о прошлом.",
-          "Type": "Crafting",
-          "Category": -19,
-          "Price": 0,
-          "Texture": "assets/Objects/VinylRecord",
-          "SpriteIndex": 0
+        "marilynsinister.BlackRose": {
+          "Name": "Чёрная роза",
+          "DisplayName": "i18n<item.black_rose>",
+          "Description": "i18n<item.black_rose.desc>",
+          "Type": "Flower",
+          "Category": -80,
+          "Price": 40,
+          "ContextTags": ["color_black", "flower_item"],
+          "Texture": "assets/Objects/BlackRose"
         },
-        "Custom_Marilynsinister_BlackRoseSeeds": {
-          "Name": "Семена Черной розы",
-          "DisplayName": "Семена Черной розы",
-          "Description": "Растет только ночью. Цветок впитывает лунный свет и тишину.",
+        "marilynsinister.BlackRoseSeeds": {
+          "Name": "Семена Чёрной розы",
+          "DisplayName": "i18n<item.black_rose_seeds>",
+          "Description": "i18n<item.black_rose_seeds.desc>",
           "Type": "Seeds",
           "Category": -74,
           "Price": 0,
-          "Texture": "assets/Objects/BlackRoseSeeds",
+          "SeedCrop": {
+            "Crop": "marilynsinister.BlackRoseCrop"
+          },
+          "Texture": "assets/Objects/BlackRoseSeeds"
+        },
+        "marilynsinister.VinylRecord": {
+          "Name": "Виниловая пластинка \"Эхо\"",
+          "DisplayName": "i18n<item.vinyl_record>",
+          "Description": "i18n<item.vinyl_record.desc>",
+          "Type": "Crafting",
+          "Price": 0,
+          "ContextTags": ["echoes_twilight_decoration"],
+          "Texture": "assets/Objects/VinylRecord"
+        },
+        "marilynsinister.WeepingWillowSapling": {
+          "Name": "Саженец плакучей ивы",
+          "DisplayName": "i18n<item.weeping_willow_item>",
+          "Description": "i18n<item.weeping_willow_item.desc>",
+          "Type": "Crafting",
+          "Price": 0,
+          "Texture": "assets/Objects/WeepingWillow"
+        },
+        "marilynsinister.TurntableBlueprint": {
+          "Name": "Схема проигрывателя",
+          "DisplayName": "i18n<item.turntable_item>",
+          "Description": "i18n<item.turntable_item.desc>",
+          "Type": "Quest",
+          "Price": 0,
+          "Texture": "assets/Objects/Turntable"
+        }
+      }
+    },
+
+    {
+      "Action": "EditData",
+      "Target": "Data/BigCraftables",
+      "Entries": {
+        "marilynsinister.VinylRecord": {
+          "DisplayName": "i18n<item.vinyl_record>",
+          "Description": "i18n<item.vinyl_record.desc>",
+          "Texture": "assets/Objects/VinylRecord",
+          "SpriteIndex": 0,
+          "Size": { "X": 1, "Y": 1 },
+          "CustomFields": {
+            "EchoesTwilightValley.melancholyAura": "true"
+          }
+        },
+        "marilynsinister.WeepingWillow": {
+          "DisplayName": "i18n<item.weeping_willow>",
+          "Description": "i18n<item.weeping_willow.desc>",
+          "Texture": "assets/Objects/WeepingWillow",
+          "SpriteIndex": 0,
+          "Size": { "X": 4, "Y": 4 },
+          "CustomFields": {
+            "EchoesTwilightValley.quoteSource": "willow"
+          }
+        },
+        "marilynsinister.Turntable": {
+          "DisplayName": "i18n<item.turntable>",
+          "Description": "i18n<item.turntable.desc>",
+          "Texture": "assets/Objects/Turntable",
+          "SpriteIndex": 0,
+          "Size": { "X": 3, "Y": 2 },
+          "Interactive": true,
+          "CustomFields": {
+            "EchoesTwilightValley.musicTrigger": "gloomy_wave"
+          }
+        }
+      }
+    },
+
+    {
+      "Action": "EditData",
+      "Target": "Data/Buffs",
+      "Entries": {
+        "marilynsinister.Melancholy": {
+          "DisplayName": "i18n<buff.melancholy>",
+          "Description": "i18n<buff.melancholy.desc>",
+          "IconTexture": "LooseSprites\\Cursors",
+          "IconSpriteIndex": 192,
+          "Effects": {
+            "LuckLevel": 1,
+            "FishingLevel": 1
+          },
+          "Duration": 7500,
+          "IsDebuff": false
+        }
+      }
+    },
+
+    {
+      "Action": "EditData",
+      "Target": "Data/Crops",
+      "Entries": {
+        "marilynsinister.BlackRoseCrop": {
+          "Seasons": ["spring", "fall"],
+          "DaysInPhase": [6, 6, 6, 6],
+          "HarvestItemId": "marilynsinister.BlackRose",
+          "ExtraHarvestChance": 0.05,
+          "ShowTop": true,
+          "Texture": "assets/Objects/BlackRoseCrop",
           "SpriteIndex": 0
+        }
+      }
+    },
+
+    {
+      "Action": "EditData",
+      "Target": "Data/CraftingRecipes",
+      "Entries": {
+        "Чай тишины": {
+          "Recipe": {
+            "ResultID": "marilynsinister.TeaOfSilence",
+            "MaxMade": 1,
+            "Display": "marilynsinister.TeaOfSilence 0 0 false false"
+          },
+          "Ingredients": {
+            "(O)427": 1,
+            "(O)marilynsinister.BlackRose": 1
+          }
+        },
+        "Виниловая пластинка": {
+          "Recipe": {
+            "ResultID": "marilynsinister.VinylRecord",
+            "MaxMade": 1,
+            "Display": "marilynsinister.VinylRecord 0 0 false false"
+          },
+          "Ingredients": {
+            "(O)390": 3,
+            "(O)384": 2
+          }
+        },
+        "Плакучая ива": {
+          "Recipe": {
+            "ResultID": "marilynsinister.WeepingWillow",
+            "MaxMade": 1,
+            "Display": "marilynsinister.WeepingWillow 0 0 false false"
+          },
+          "Ingredients": {
+            "(O)309": 10,
+            "(O)422": 2,
+            "(O)marilynsinister.BlackRose": 4
+          }
         }
       }
     },
     {
       "Action": "EditData",
+      "Target": "Data/CraftingRecipes",
+      "Entries": {
+        "Проигрыватель «Последний аккорд»": {
+          "Recipe": {
+            "ResultID": "marilynsinister.Turntable",
+            "MaxMade": 1,
+            "Display": "marilynsinister.Turntable 0 0 false false"
+          },
+          "Ingredients": {
+            "(O)336": 2,
+            "(O)390": 5,
+            "(O)marilynsinister.VinylRecord": 1
+          }
+        }
+      },
+      "When": {
+        "HasFlag": "marilynsinister.EchoesTwilightValley LastChordDone"
+      }
+    },
+
+    {
+      "Action": "EditData",
       "Target": "Data/Shops",
       "Entries": {
-        "Custom_Marilynsinister_IgorShop": {
-          "Currency": 0,
+        "marilynsinister.IgorShop": {
+          "Image": null,
+          "Currency": null,
           "Items": [
             {
               "Id": "Vinyl",
-              "ItemId": "(O)Custom_Marilynsinister_VinylRecord",
+              "ItemId": "(O)marilynsinister.VinylRecord",
               "Price": 0,
               "TradeItemId": "(O)434",
               "TradeItemCount": 3,
@@ -70,58 +225,154 @@
             },
             {
               "Id": "Seeds",
-              "ItemId": "(O)Custom_Marilynsinister_BlackRoseSeeds",
+              "ItemId": "(O)marilynsinister.BlackRoseSeeds",
               "Price": 0,
               "TradeItemId": "(O)434",
               "TradeItemCount": 1,
               "AvailableStock": 5
+            },
+            {
+              "Id": "Tea",
+              "ItemId": "(O)marilynsinister.TeaOfSilence",
+              "Price": 800,
+              "AvailableStock": 2
             }
           ]
         }
       }
     },
+
     {
       "Action": "EditData",
-      "Target": "Data/NPC/Dialogue/Igor",
+      "Target": "Data/NPCDialogue",
       "Entries": {
-        "Introduction": "Дождь смывает всё... кроме памяти. Ты тоже ищешь тишину, путник?",
-        "Rain": "Слушай... слышишь этот перебор струн в шуме капель? Это эхо того, что мы потеряли.",
-        "Night": "Ночь — лучшее время для честных разговоров. И для старых пластинок.",
-        "Shop": "У меня нет ничего полезного для твоей суеты. Только то, что осталось от прошлого. Выбирай.",
-        "Default": "Всё проходит. И это тоже пройдет. Но эхо остается."
+        "Igor": {
+          "Name": "Игорь",
+          "Gender": "Male",
+          "Age": "Adult",
+          "Marriageable": false,
+          "SocialAnxiety": "Shy",
+          "Background": "Странник из Сумрачной Долины. Носит с собой только пластинки и воспоминания.",
+          "Dialogue": {
+            "Introduction": "Дождь смывает всё... кроме памяти. Ты тоже ищешь тишину, путник?",
+            "Rain": "Слушай... слышишь этот перебор струн в шуме капель? Это эхо того, что мы потеряли. Но иногда потеря — это обретение.",
+            "Night": "Ночь — лучшее время для честных разговоров. И для старых пластинок. Мир днём слишком шумит, чтобы услышать себя.",
+            "Shop": "У меня нет ничего полезного для твоей суеты. Только то, что осталось от прошлого. Выбирай.",
+            "quest_LastChord": "Разбитое радио на крыльце... Оно играет одну песню, если знать, как слушать. Принеси деталь, которая помнит тепло: два медных слитка, пять досок и старую пластинку.^#$e marilynsinister.LastChord.Accepted#$e^Принять: отдать материалы^marilynsinister.LastChord.Accepted|Отложить^$skip",
+            "marilynsinister.LastChord.Accepted": "Медь помнит жар кузницы лучше, чем человек помнит своё имя. Поставь проигрыватель у окна — и подожди дождя.",
+            "AfterQuest": "Слышишь? Это «Эхо». Последний аккорд той группы, что играла здесь до тумана. Спасибо, путник. Теперь музыка найдёт тебя сама.",
+            "Default": "Всё проходит. И это тоже пройдёт. Но эхо остаётся."
+          },
+          "GiftTastes": {
+            "Love": "marilynsinister.BlackRose marilynsinister.TeaOfSilence",
+            "Neutral": "338 217",
+            "Hate": "434"
+          }
+        }
       }
     },
-    {
-      "Action": "EditMap",
-      "Target": "Maps/Forest",
-      "When": { "Weather": "Rain, Fog", "Time": ">= 1800" },
-      "MapProperties": {
-        "Warps": "Add 60 100 Custom_Marilynsinister_AbandonedFarm 10 10"
-      },
-      "TextLayers": [
         {
-          "Name": "Buildings",
-          "Position": { "X": 60, "Y": 99 },
-          "Text": "2"
-        }
-      ]
+      "Action": "Load",
+      "Target": "Portraits/Igor",
+      "FromFile": "assets/Portraits/Igor.png"
     },
     {
       "Action": "Load",
-      "Target": "Maps/Custom_Marilynsinister_AbandonedFarm",
+      "Target": "Characters/Igor",
+      "FromFile": "assets/Characters/Igor.png"
+    },
+
+    {
+      "Action": "Load",
+      "Target": "Maps/marilynsinister_AbandonedFarm",
       "FromFile": "assets/Maps/AbandonedFarm.tmx"
     },
     {
       "Action": "EditData",
       "Target": "Data/Locations",
       "Entries": {
-        "Custom_Marilynsinister_AbandonedFarm": {
-          "DisplayName": "Заброшенный хутор",
-          "DefaultArrivalTile": { "X": 10, "Y": 10 },
+        "Custom_marilynsinister_AbandonedFarm": {
+          "DisplayName": "i18n<location.abandoned_farm>",
           "CreateOnLoad": {
-            "MapPath": "Maps/Custom_Marilynsinister_AbandonedFarm",
-            "AlwaysActive": true
+            "MapPath": "Maps/marilynsinister_AbandonedFarm"
+          },
+          "DefaultArrivalTile": { "X": 10, "Y": 32 },
+          "Fishable": false,
+          "CanHaveBeehives": false
+        }
+      }
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/Forest",
+      "MapTiles": [
+        {
+          "Position": { "X": 60, "Y": 99 },
+          "Layer": "Back",
+          "SetProperties": {
+            "Action": "warp Custom_marilynsinister_AbandonedFarm 10 32"
           }
+        }
+      ],
+      "When": {
+        "Weather": "Rain, Fog"
+      }
+    },
+    {
+      "Action": "EditMap",
+      "Target": "Maps/marilynsinister_AbandonedFarm",
+      "MapTiles": [
+        {
+          "Position": { "X": 10, "Y": 39 },
+          "Layer": "Back",
+          "SetProperties": {
+            "Action": "warp Forest 60 100"
+          }
+        },
+        {
+          "Position": { "X": 24, "Y": 19 },
+          "Layer": "AlwaysObjects",
+          "SetProperties": {
+            "Object": "(O)marilynsinister.VinylRecord"
+          }
+        }
+      ]
+    },
+
+    {
+      "Action": "EditData",
+      "Target": "Data/Events/Custom_marilynsinister_AbandonedFarm",
+      "Entries": {
+        "six ten f marilynsinister.IgorAppear/-3000": {
+          "SetVariables": [],
+          "Commands": [
+            "spawn Igor 21 20 Down",
+            "stopMusic",
+            "playAmbientSound Rain 0",
+            "pause 800",
+            "emote Igor 16",
+            "dialogue Igor \"Дождь смывает всё... кроме памяти. Ты тоже ищешь тишину, путник?\"",
+            "setFlag marilynsinister.EchoesTwilightValley IgorMet",
+            "playMusic rain"
+          ]
+        },
+        "five twenty t marilynsinister.OpenIgorShop/-3000": {
+          "SetVariables": [],
+          "Commands": [
+            "spawn Igor 21 20 Down",
+            "dialogue Igor \"У меня нет ничего полезного для твоей суеты. Только то, что осталось от прошлого. Выбирай.\"",
+            "openShop marilynsinister.IgorShop Igor"
+          ]
+        },
+        "nine twenty f marilynsinister.LastChordDone/-3000": {
+          "SetVariables": [],
+          "Commands": [
+            "spawn Igor 21 20 Down",
+            "playMovie none marilynsinister_EchoVinyl",
+            "dialogue Igor \"Слышишь? Это «Эхо». Последний аккорд той группы, что играла здесь до тумана.\"",
+            "gift marilynsinister.TurntableBlueprint false",
+            "changeHeart 2 Igor"
+          ]
         }
       }
     }
