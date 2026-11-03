@@ -646,13 +646,13 @@
     {
       "Action": "Load",
       "Target": "Characters/Timur",
-      "FromFile": "assets/Characters/Igor.png"
+      "FromFile": "assets/Characters/Timur.png"
     },
     {
       "Action": "Load",
       "Target": "Portraits/Timur",
-      "FromFile": "assets/Portraits/Igor.png",
-      "Comments": "Временный плейсхолдер: портрет Тимура повторяет арт Игоря до авторских артов (Фаза 5)."
+      "FromFile": "assets/Portraits/Timur.png",
+      "Comments": "Авторский арт (tools/build_art.py): барабанщик с палочками и метрономом, грозовое небо."
     },
     {
       "Action": "EditMap",

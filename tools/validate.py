@@ -36,7 +36,13 @@ SPRITE_CHECKS = {
     "assets/Objects/BlackRoseCrop.png": (64, 128),
     "assets/Characters/Igor.png": (32, 64),
     "assets/Portraits/Igor.png": (64, 64),
+    "assets/Characters/Timur.png": (32, 64),
+    "assets/Portraits/Timur.png": (64, 64),
+    "assets/Maps/VillageTiles.png": (128, 96),
 }
+# Портреты и тайлсет карты обязаны быть полностью непрозрачными; персонажи — с альфа-каналом.
+OPAQUE_SPRITES = {"assets/Portraits/Igor.png", "assets/Portraits/Timur.png",
+                  "assets/Maps/placeholder.png"}
 EXPECTED_CUSTOM_FIELDS = {"EchoesTwilightValley.musicTrigger",
                           "EchoesTwilightValley.quoteSource",
                           "EchoesTwilightValley.melancholyAura",
@@ -155,6 +161,32 @@ def check_sprites():
             err(f"{rel}: размер {w}x{h} меньше ожидаемого {min_w}x{min_h}")
         else:
             ok += 1
+    # авторские ассеты из tools/build_art.py: Timur не должен снова быть плейсхолдером Igor
+    art_files = ["assets/Characters/Timur.png", "assets/Portraits/Timur.png",
+                 "assets/Maps/VillageTiles.png"]
+    for rel in art_files:
+        if not os.path.exists(os.path.join(ROOT, rel)):
+            err(f"авторский арт отсутствует (запустите python3 tools/build_art.py): {rel}")
+    for pair in [("assets/Characters/Timur.png", "assets/Characters/Igor.png"),
+                 ("assets/Portraits/Timur.png", "assets/Portraits/Igor.png")]:
+        a, b = (os.path.join(ROOT, x) for x in pair)
+        if os.path.exists(a) and os.path.exists(b):
+            if open(a, "rb").read() == open(b, "rb").read():
+                err(f"{pair[0]} побайтово равен {pair[1]} — Тимур всё ещё плейсхолдер Игоря")
+    # в content.json Load-цели Timur должны вести на Timur-файлы, а не на Igor
+    try:
+        with open(os.path.join(ROOT, "content.json"), encoding="utf-8") as f:
+            ctext = f.read()
+        for target, want in [('"Target": "Characters/Timur"', "Characters/Timur.png"),
+                             ('"Target": "Portraits/Timur"', "Portraits/Timur.png")]:
+            i = ctext.find(target)
+            if i != -1:
+                seg = ctext[i:i + 200]
+                j = seg.find("FromFile")
+                if j != -1 and want not in seg[j:j + 60]:
+                    err(f"content.json: {target} грузит не {want} (плейсхолдер не переключён)")
+    except Exception as e:
+        warn(f"content.json не читается в check_sprites: {e}")
     print(f"  спрайты: {ok}/{len(SPRITE_CHECKS)} файлов в порядке")
 
 

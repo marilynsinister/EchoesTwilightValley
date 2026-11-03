@@ -40,6 +40,28 @@ PALETTE = [
 
 
 def gen_tileset_png(path):
+    """Совместимость: если на месте уже авторский тайлсет (его рисует
+    tools/build_art.py — пиксель-арт, а не плашечки PALETTE) — не перетираем.
+    Иначе (первая генерация с нуля) рисуем однотонную заглушку по PALETTE."""
+    if os.path.exists(path):
+        try:
+            from PIL import Image as _Img
+            im = _Img.open(path).convert("RGBA")
+            if im.size == (TILE * len(PALETTE), TILE):
+                # плашечка PALETTE в центре тайла имеет ровно цвет col (+shade 0/12
+                # только при (dx+dy)%4==0; центр (8,8): (8+8)%4==0 -> +12 всегда)
+                ok = all(
+                    abs(im.getpixel((i * TILE + 8, 8))[0] - (col[0] + 12)) <= 1
+                    and abs(im.getpixel((i * TILE + 8, 8))[1] - (col[1] + 12)) <= 1
+                    and abs(im.getpixel((i * TILE + 8, 8))[2] - (col[2] + 12)) <= 1
+                    for i, col in enumerate(PALETTE)
+                )
+                if ok:
+                    pass  # это наша заглушка — перерисуем ниже
+                else:
+                    return  # авторский арт — оставляем в покое
+        except Exception:
+            pass
     img = Image.new("RGBA", (TILE * len(PALETTE), TILE))
     px = img.load()
     for i, col in enumerate(PALETTE):
