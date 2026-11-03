@@ -49,7 +49,7 @@ Content Patcher-часть мода работает «из коробки», н
    ModBuildConfig сам найдёт пути к игре и SMAPI (если нет — укажите `PathToGame`/`PathToSMAPI` в `EchoesTwilightValley.csproj`). Готовый `EchoesTwilightValley.dll` попадёт в выходную папку bin и будет подхвачен manifest'ом (`EntryDll`).
 4. Опционально: установите **Generic Mod Config Menu** — в игре появится экран настроек (замедление Сумрака, шёпот ивы, интервал сообщений). Без GMCM правьте `config.json` в папке мода вручную.
 5. Быстрая проверка структуры без игры: `python3 tools/validate.py` (валидность JSON, покрытие i18n ru/en, размеры спрайтов, TMX-слои, совпадение CustomFields с кодом, аудио-ассеты).
-6. Регенерация ассетов: `python3 tools/build_map.py` (карта), `python3 tools/build_sprites.py` (спрайты), `python3 tools/build_audio.py` (звуковые лупы, Фаза 3 — например бесшовный `vinyl_crackle.wav`).
+6. Регенерация ассетов: `python3 tools/build_map.py` (карта), `python3 tools/build_sprites.py` (спрайты), `python3 tools/build_audio.py` (звуковые лупы, Фаза 3 — бесшовный `vinyl_crackle.wav` и ночной эмбиент `last_tram.wav`).
 
 ## 🎼 Установка музыки (когда треки будут готовы)
 
