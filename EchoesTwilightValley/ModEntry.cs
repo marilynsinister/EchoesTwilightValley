@@ -201,8 +201,9 @@ namespace EchoesTwilightValley
             if (this.Config.AnnounceTwilightValley && IsTwilightWeather(Game1.weatherForTomorrow))
                 this.Monitor.Log("Завтра Сумрак снизойдёт на деревню…", LogLevel.Info);
 
-            // Гроза — не чаще одного «набата» за игровой день (сбрасываем флаг при старте дня).
+            // Гроза и «трамвай» — не чаще одного раза за игровой день (сбрасываем флаги при старте дня).
             this.SaveData.ThunderHeard = false;
+            this.SaveData.TramHeard = false;
         }
 
         /// <summary>«Замедление Сумрака»: не чаще одного сообщения в N минут реального времени.</summary>
@@ -434,9 +435,14 @@ namespace EchoesTwilightValley
 
         private string? PickWillowQuote()
         {
-            // Пасхалка: 1-е число месяца — редкая цитата.
+            // Пасхалка: 1-е число месяца — редкая цитата о последнем трамвае.
             if (this.EasterQuote is not null && Game1.dayOfMonth == 1)
+            {
+                // Фаза 3: цитате аккомпанирует ночной эмбиент last_tram.{ogg|wav}
+                // (не чаще одного раза в день, флаг TramHeard в save).
+                this.TryPlayLastTram();
                 return this.EasterQuote;
+            }
 
             if (this.WillowQuotes.Length == 0)
                 return null;
@@ -454,6 +460,20 @@ namespace EchoesTwilightValley
             if (this.PlayModAudioFile("vinyl_crackle"))
                 return;
             try { Game1.playSound("smallSelect"); } catch { /* молчим, если звук недоступен */ }
+        }
+
+        /// <summary>
+        /// Пасхалка «Последний трамвай» (Фаза 3): ночной эмбиент из
+        /// <c>assets/Audio/last_tram.{ogg|wav}</c>, привязанный к пасхальной цитате ивы.
+        /// Не чаще одного раза за игровой день (флаг TramHeard в save); без аудиофайла
+        /// тихо ничего не происходит — цитата работает и сама по себе.
+        /// </summary>
+        private void TryPlayLastTram()
+        {
+            if (this.SaveData.TramHeard)
+                return;
+            this.SaveData.TramHeard = true;
+            this.PlayModAudioFile("last_tram");
         }
 
         /// <summary>
@@ -516,6 +536,9 @@ namespace EchoesTwilightValley
 
         /// <summary>Звучал ли «набат грозы» в деревне в текущий игровой день (сбрасывается в OnDayStarted).</summary>
         public bool ThunderHeard { get; set; }
+
+        /// <summary>Звучал ли ночной эмбиент «Последнего трамвая» в текущий игровой день (сбрасывается в OnDayStarted).</summary>
+        public bool TramHeard { get; set; }
     }
 
     /// <summary>Минимальный интерфейс API Generic Mod Config Menu (чтобы не зависеть от сборки GMCM).</summary>

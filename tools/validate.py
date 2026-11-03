@@ -404,6 +404,17 @@ def check_audio(content):
     if "PlayVinylCrackle()" not in cs or "vinyl_crackle" not in cs:
         err("аудио: PlayVinylCrackle не подключён к файлу vinyl_crackle")
 
+    # Пасхалка «Последний трамвай»: файл должен существовать и быть подключён в C#
+    # (TryPlayLastTram + флаг TramHeard в save, сбрасываемый в OnDayStarted).
+    tram = [f for f in files if f.lower().startswith("last_tram")]
+    if tram and "TryPlayLastTram" not in cs:
+        err("аудио: last_tram.* присутствует, но TryPlayLastTram не вызывается из ModEntry.cs")
+    if "TryPlayLastTram" in cs:
+        if not tram:
+            err("аудио: TryPlayLastTram подключён, но last_tram.{wav,ogg} отсутствует в assets/Audio")
+        if "TramHeard" not in cs:
+            err("аудио: TryPlayLastTram не защищает повтор (нет флага TramHeard в save-данных)")
+
     csproj = open(os.path.join(ROOT, "EchoesTwilightValley", "EchoesTwilightValley.csproj"), encoding="utf-8").read()
     if "assets\\Audio" not in csproj and "assets/Audio" not in csproj:
         err("аудио: csproj не копирует assets/Audio в выходную директорию (PreserveNewest)")
