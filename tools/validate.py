@@ -34,6 +34,7 @@ SPRITE_CHECKS = {
     "assets/Objects/TearsOfMemory.png": (16, 16),
     "assets/Objects/RecordNeedle.png": (16, 16),
     "assets/Objects/BlackRoseCrop.png": (64, 128),
+    "assets/Objects/WillowSapling.png": (16, 16),
     "assets/Characters/Igor.png": (32, 64),
     "assets/Portraits/Igor.png": (64, 64),
     "assets/Characters/Timur.png": (32, 64),

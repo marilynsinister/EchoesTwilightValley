@@ -64,7 +64,7 @@
           "Description": "i18n<item.weeping_willow_item.desc>",
           "Type": "Crafting",
           "Price": 0,
-          "Texture": "assets/Objects/WeepingWillow"
+          "Texture": "assets/Objects/WillowSapling"
         },
         "marilynsinister.TurntableBlueprint": {
           "Name": "Схема проигрывателя",
