@@ -81,9 +81,10 @@ def save(img, name):
 # ---------- Чай тишины (16x16) ----------
 img, d = canvas(16, 16)
 d.rectangle([3, 6, 11, 13], fill=PORCELAIN, outline=INK)      # фарфоровая чашка
+d.line([4, 7, 10, 7], fill=(232, 236, 242, 255))              # светлый ободок
 d.line([4, 12, 10, 12], fill=(150, 156, 168, 255))            # тень на донышке
-d.rectangle([4, 7, 10, 9], fill=TEA)                          # чай
-d.point((5, 7), fill=(150, 122, 92, 255))                     # блик на заварке
+d.rectangle([4, 8, 10, 10], fill=TEA)                         # чай (тёмно-янтарный)
+d.point((5, 8), fill=(168, 138, 100, 255))                   # блик на заварке
 d.rectangle([11, 8, 13, 11], outline=INK)                     # ручка
 d.line([12, 9, 12, 10], fill=PALE)                            # блик ручки
 rnd = Lcg(7)
